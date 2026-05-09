@@ -1,0 +1,32 @@
+{
+  "entities": {
+    "Registration": {
+      "title": "Registration",
+      "description": "Registration data for a parent and student joining the academy",
+      "type": "object",
+      "properties": {
+        "parentFullName": { "type": "string", "description": "Full name of the parent" },
+        "parentPhone": { "type": "string", "description": "Phone number of the parent" },
+        "parentEmail": { "type": "string", "format": "email", "description": "Email address of the parent" },
+        "studentName": { "type": "string", "description": "Name of the student" },
+        "studentAge": { "type": "integer", "description": "Age of the student" },
+        "studentGender": { "type": "string", "enum": ["male", "female"], "description": "Gender of the student" },
+        "studentLocation": { "type": "string", "description": "Preferred training location" },
+        "studentMedicalNotes": { "type": "string", "description": "Optional medical notes for the student" },
+        "studentProfileImage": { "type": "string", "description": "Profile image URL or base64 string" },
+        "trainingGroup": { "type": "string", "description": "Selected training group (e.g. U8)" },
+        "trainingSchedule": { "type": "string", "description": "Selected training schedule" },
+        "paymentType": { "type": "string", "enum": ["trial", "monthly"], "description": "Type of enrollment" },
+        "paymentMethod": { "type": "string", "enum": ["at_field"], "description": "Payment method" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of registration" }
+      },
+      "required": ["parentFullName", "parentPhone", "studentName", "studentAge", "studentGender", "studentLocation", "trainingGroup", "trainingSchedule", "paymentType", "paymentMethod", "createdAt"]
+    }
+  },
+  "firestore": {
+    "registrations": {
+      "schema": "Registration",
+      "description": "Collection of all student registrations"
+    }
+  }
+}

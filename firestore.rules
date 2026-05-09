@@ -1,0 +1,50 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Registrations collection
+    match /registrations/{registrationId} {
+      allow create: if isValidRegistration(incoming());
+      // For now, no public read access. Admin role could be added later.
+      allow read: if false; 
+    }
+
+    // --- Helpers ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidRegistration(data) {
+      return data.keys().hasAll(['parentFullName', 'parentPhone', 'studentName', 'studentAge', 'studentGender', 'studentLocation', 'trainingGroup', 'trainingSchedule', 'paymentType', 'paymentMethod', 'createdAt'])
+        && data.keys().size() >= 11 && data.keys().size() <= 14
+        && data.parentFullName is string && data.parentFullName.size() <= 100
+        && data.parentPhone is string && data.parentPhone.size() <= 20
+        && (data.get('parentEmail', '') == '' || (data.parentEmail is string && data.parentEmail.size() <= 100))
+        && data.studentName is string && data.studentName.size() <= 100
+        && data.studentAge is int && data.studentAge >= 4 && data.studentAge <= 25
+        && data.studentGender in ['male', 'female']
+        && data.studentLocation is string && data.studentLocation.size() <= 100
+        && data.trainingGroup is string && data.trainingGroup.size() <= 100
+        && data.trainingSchedule is string && data.trainingSchedule.size() <= 100
+        && data.paymentType in ['trial', 'monthly']
+        && data.paymentMethod == 'at_field'
+        && (data.get('studentMedicalNotes', '') == '' || (data.studentMedicalNotes is string && data.studentMedicalNotes.size() <= 500))
+        && (data.get('studentProfileImage', '') == '' || (data.studentProfileImage is string && data.studentProfileImage.size() <= 1000000))
+        && data.createdAt == request.time;
+    }
+  }
+}
