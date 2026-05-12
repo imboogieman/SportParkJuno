@@ -60,7 +60,7 @@ export const MOCK_STUDENT = {
   level: 4,
   xp: 1250,
   nextLevelXp: 2000,
-  avatar: 'https://images.unsplash.com/photo-1618671401673-bc97e5967f65?auto=format&fit=crop&q=80&w=400',
+  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=400',
   skills: [
     { key: 'dribbling', label: 'Dribbling', labelRU: 'Дриблинг', labelGE: 'დრიბლინგი', value: 75 },
     { key: 'passing', label: 'Passing', labelRU: 'Пасы', labelGE: 'პასი', value: 60 },
@@ -83,18 +83,19 @@ export const COACHES = [
     nameRU: 'Роман Горбунов',
     specialization: 'Technical Director',
     specializationRU: 'Технический Директор',
-    experience: 'Elite Youth Coach',
-    experienceRU: 'Тренер высшей категории',
+    experience: 'Author of the holistic program',
+    experienceRU: 'Автор холистической программы',
     certifications: ['Higher Pedagogy Degree', 'National Rugby Team RB U-21'],
     certificationsRU: ['Высшее пед. образование', 'Нац. команда по регби РБ U-21'],
     bio: 'Multi-disciplinary expert combining high-level rugby experience with pedagogical foundation for holistic football training.',
     bioRU: 'Сочетает опыт в сборной по регби с высшим педагогическим образованием для подготовки мультидисциплинарных атлетов.',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=600&q=80'
+    image: '/Images/tech_director_01.png',
+    objectPosition: 'top'
   },
   {
     id: 'coach-2',
-    name: 'Anton Kipelov',
-    nameRU: 'Антон Кипелов',
+    name: 'Stefan Zhivozudsky',
+    nameRU: 'Стефан Живозудский',
     specialization: 'Football Coach',
     specializationRU: 'Футбольный тренер',
     experience: '12 Years Pro',
@@ -103,21 +104,23 @@ export const COACHES = [
     certificationsRU: ['экс-ФК Ростов', 'Проф. опыт 12 лет'],
     bio: 'Professional football veteran bringing elite-level field experience to the next generation of players.',
     bioRU: 'Бывший игрок ФК Ростов, передающий опыт профессионального спорта и дисциплины юным атлетам.',
-    image: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=600&q=80'
+    image: '/Images/football_coach_01.png',
+    objectPosition: 'center'
   },
   {
     id: 'coach-3',
     name: 'Elena Petrova',
     nameRU: 'Елена Петрова',
-    specialization: 'Running Preparation',
-    specializationRU: 'Беговая подготовка',
+    specialization: 'Crossfit',
+    specializationRU: 'Crossfit',
     experience: 'Fitness Professional',
     experienceRU: 'Фитнес-профессионал',
     certifications: ['Certified Fitness Coach', 'Track & Field Specialist'],
     certificationsRU: ['Сертифицированный тренер', 'Специалист по легкой атлетике'],
     bio: 'Focuses on the mechanics of movement and speed development, foundational for every disciplinary sport.',
     bioRU: 'Специалист по биомеханике бега и постановке правильной техники движений для любых игровых видов спорта.',
-    image: 'https://images.unsplash.com/photo-1548690312-e3b507d17a47?auto=format&fit=crop&w=600&q=80'
+    image: 'https://placehold.co/600x800/0B1120/4FB0A8?text=Loading...',
+    objectPosition: 'center'
   }
 ];
 

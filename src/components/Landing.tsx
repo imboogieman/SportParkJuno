@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button, Card, Badge } from './UI';
 import { USPS, PROGRAMS, MOCK_STUDENT, LOCATIONS, COACHES } from '../constants';
-import { Trophy, Star, ChevronRight, ChevronDown, Play, Info, CheckCircle2, MapPin, Calendar, Smartphone, Activity, Target, BarChart3, Users, LayoutGrid, Settings, Zap, Brain, Shield, Heart, Command, Clock, Wind, Utensils, ExternalLink, Award, BookOpen, ArrowRight } from 'lucide-react';
+import { Trophy, Star, ChevronRight, ChevronDown, Play, Info, CheckCircle2, MapPin, Calendar, Smartphone, Activity, Target, BarChart3, Users, LayoutGrid, Settings, Zap, Brain, Shield, Heart, Command, Clock, Wind, Utensils, ExternalLink, Award, BookOpen, ArrowRight, X } from 'lucide-react';
 import { translations } from '../i18n';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -20,10 +20,10 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b shadow-none py-4 px-6 md:px-12 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-brand-teal rounded-xl flex items-center justify-center neon-glow-teal rotate-6">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-brand-teal rounded-xl flex items-center justify-center neon-glow-teal rotate-6 shrink-0">
             <Activity className="text-white w-5 h-5 md:w-6 md:h-6" />
           </div>
-          <span className="hidden sm:block font-display font-black text-base sm:text-lg md:text-xl tracking-tighter uppercase italic text-brand-navy whitespace-nowrap">
+          <span className="hidden md:block font-display font-black text-base sm:text-lg md:text-xl tracking-tighter uppercase italic text-brand-navy whitespace-nowrap">
             Sport Park <span className="text-brand-teal">Juno</span>
           </span>
         </div>
@@ -64,21 +64,21 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
             {/* Language Popup Modal */}
             <AnimatePresence>
               {isLangOpen && (
-                <>
+                <div className="fixed inset-0 z-[70] md:hidden flex items-center justify-center px-4">
                   {/* Backdrop */}
                   <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={() => setIsLangOpen(false)}
-                    className="fixed inset-0 bg-brand-navy/60 backdrop-blur-md z-[60] md:hidden"
+                    className="absolute inset-0 bg-brand-navy/60 backdrop-blur-md"
                   />
                   {/* Modal Content */}
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="fixed left-4 right-4 top-1/2 -translate-y-1/2 bg-white rounded-[40px] p-6 sm:p-8 z-[70] md:hidden shadow-3xl border border-white/20 max-w-[400px] mx-auto overflow-hidden"
+                    className="relative bg-white rounded-[40px] p-6 sm:p-8 shadow-3xl border border-white/20 w-full max-w-[400px] max-h-[85vh] overflow-y-auto"
                   >
                     <div className="text-center mb-6 sm:mb-8">
                       <h3 className="text-brand-navy text-xl sm:text-2xl font-black italic uppercase tracking-tighter">
@@ -87,7 +87,7 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
                       <div className="w-12 h-1 bg-brand-teal/20 mx-auto mt-3 rounded-full" />
                     </div>
                     
-                    <div className="grid gap-3 sm:gap-4">
+                    <div className="grid gap-3 sm:gap-4 font-sans">
                       {[
                         { code: 'EN', label: 'English', native: 'English' },
                         { code: 'GE', label: 'Georgian', native: 'ქართული' },
@@ -116,12 +116,12 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
                     
                     <button 
                       onClick={() => setIsLangOpen(false)}
-                      className="w-full mt-6 sm:mt-8 p-3 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] text-brand-navy/30 hover:text-brand-teal transition-all"
+                      className="w-full mt-6 sm:mt-8 p-3 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] text-brand-navy/30 hover:text-brand-teal transition-all font-sans"
                     >
                       {currentLang === 'RU' ? 'ОТМЕНА' : currentLang === 'GE' ? 'გაუქმება' : 'CANCEL'}
                     </button>
                   </motion.div>
-                </>
+                </div>
               )}
             </AnimatePresence>
           </div>
@@ -132,7 +132,7 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
           {/* Mobile Menu Toggle */}
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 ml-2 relative z-[60]"
+            className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 ml-1 relative z-[60]"
             aria-label="Toggle Menu"
           >
             <div className={`w-6 h-0.5 bg-brand-navy transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
@@ -149,9 +149,17 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
-            className="fixed inset-0 z-40 bg-white md:hidden pt-32 pb-12 px-6 overflow-y-auto"
+            className="fixed inset-0 z-50 bg-white md:hidden pt-32 pb-12 px-6 overflow-y-auto"
           >
-            <div className="flex flex-col gap-6 text-center pb-8">
+            {/* Close Button Inside Menu */}
+            <button 
+              onClick={() => setIsMenuOpen(false)}
+              className="absolute top-8 right-6 w-12 h-12 flex items-center justify-center rounded-2xl bg-brand-navy/5 text-brand-navy hover:bg-brand-teal hover:text-white transition-all shadow-sm"
+              aria-label="Close Menu"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <div className="flex flex-col gap-6 text-center pb-8 font-sans">
               <div className="flex justify-center gap-3 mb-6">
                 {['EN', 'GE', 'RU'].map((l) => (
                   <button
@@ -239,7 +247,7 @@ export function Hero({ lang = 'EN' }: { lang?: string }) {
                 className="w-full sm:w-auto h-16 md:h-20 px-12 md:px-20 tracking-[0.2em] italic uppercase bg-gradient-to-r from-brand-teal to-brand-sunset hover:from-brand-sunset hover:to-brand-teal text-white border-none shadow-[0_20px_50px_rgba(244,114,182,0.3)] hover:scale-105 transition-all duration-500 font-black text-base md:text-lg" 
                 onClick={() => navigate('/register')}
               >
-                {t.ctaTrial} ↗
+                {t.ctaTrial}
               </Button>
             </div>
           </motion.div>
@@ -295,14 +303,14 @@ export function HolisticDevelopment({ lang = 'EN' }: { lang?: string }) {
       desc: lang === 'RU' ? 'Знания о питании, медитации и восстановлении для самостоятельного управления своим здоровьем.' : lang === 'GE' ? 'კვება, მედიტაცია და აღდგენა.' : 'Knowledge of nutrition, meditation, and recovery for longevity in professional sports.',
       icon: Activity,
       color: 'teal',
-      img: "https://images.unsplash.com/photo-1518611012118-296072bb58c4?auto=format&fit=crop&q=80&w=400"
+      img: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=400"
     },
     { 
       title: lang === 'RU' ? 'Эффективные привычки' : lang === 'GE' ? 'ეფექტური ჩვევები' : 'Effective Habits', 
       desc: lang === 'RU' ? 'Управление временем, энергией, планирование и целеполагание как основа успеха.' : lang === 'GE' ? 'დროის მენეჯმენტი და დაგეგმვა.' : 'Time management, planning, and goal setting as a foundation for life success.',
       icon: Clock,
       color: 'blue',
-      img: "https://images.unsplash.com/photo-1508962944647-f30730740661?auto=format&fit=crop&q=80&w=400"
+      img: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&q=80&w=400"
     },
   ];
 
@@ -419,18 +427,24 @@ export function HolisticDevelopment({ lang = 'EN' }: { lang?: string }) {
 
               <div className="mb-12 text-left">
                 <h5 className="text-xs font-black italic uppercase text-brand-teal mb-6 tracking-widest">
-                  {lang === 'RU' ? 'Почему чемпионы выбирают мультидисциплинарность:' : 'The Championship Advantage:'}
+                  {lang === 'RU' ? 'Преимущества холистического метода:' : 'The Championship Advantage:'}
                 </h5>
                 <ul className="grid sm:grid-cols-2 gap-8">
                   {[
-                    { title: lang === 'RU' ? 'Меньше травм' : 'Reduced Risk', desc: lang === 'RU' ? 'Разнообразие снижает износ.' : 'Diversity reduces mechanical wear.' },
-                    { title: lang === 'RU' ? 'Выше интеллект' : 'Elite IQ', desc: lang === 'RU' ? 'Адаптивность к любым вызовам.' : 'Adaptability to any challenge.' },
+                    { 
+                      title: lang === 'RU' ? 'Снижение травматизма' : 'Reduced Risk', 
+                      desc: lang === 'RU' ? 'Вариативность нагрузок предотвращает физический износ.' : 'Diversity reduces mechanical wear.' 
+                    },
+                    { 
+                      title: lang === 'RU' ? 'Когнитивная гибкость' : 'Elite IQ', 
+                      desc: lang === 'RU' ? 'Развитие адаптивности к нестандартным вызовам.' : 'Adaptability to any challenge.' 
+                    },
                   ].map((point, pIdx) => (
                     <li key={pIdx} className="flex gap-4">
-                      <div className="w-1.5 h-1.5 rounded-full bg-brand-teal mt-2" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-brand-teal mt-2 shadow-[0_0_8px_rgba(79,176,168,0.5)]" />
                       <div>
-                        <p className="text-[11px] font-black uppercase text-brand-navy mb-1">{point.title}</p>
-                        <p className="text-[10px] text-brand-navy/40 font-bold uppercase">{point.desc}</p>
+                        <p className="text-[11px] font-black uppercase text-brand-navy mb-1 leading-tight">{point.title}</p>
+                        <p className="text-[10px] text-brand-navy/40 font-bold uppercase leading-relaxed">{point.desc}</p>
                       </div>
                     </li>
                   ))}
@@ -438,11 +452,14 @@ export function HolisticDevelopment({ lang = 'EN' }: { lang?: string }) {
               </div>
 
               <a 
-                href="#" 
-                className="inline-flex items-center gap-4 text-xs font-black uppercase italic tracking-widest text-brand-teal hover:gap-6 transition-all"
+                href="https://www.researchgate.net/publication/378911874_The_Holistic_and_Partial_Approach_in_Soccer_Training_Integrating_Physical_Technical_Tactical_and_Mental_Compo-nents_A_Systematic_Review" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-4 text-xs font-black uppercase italic tracking-widest text-brand-teal hover:text-brand-sunset transition-all group/link relative"
               >
-                {lang === 'RU' ? 'Читать исследование' : 'Read Full Research'} 
-                <ArrowRight className="w-4 h-4" />
+                <span className="relative z-10">{lang === 'RU' ? 'Читать исследование' : 'Read Full Research'}</span>
+                <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform relative z-10" />
+                <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-sunset transition-all duration-300 group-hover/link:w-full" />
               </a>
             </div>
           </div>
@@ -507,18 +524,18 @@ export function USPSection({ lang = 'EN' }: { lang?: string }) {
         <p className="text-brand-navy/50 max-w-xl mx-auto font-medium px-4">{t.uspDesc}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {translatedUSPS.map((usp, idx) => (
-          <Card key={usp.id} className="group hover:border-brand-teal/30 transition-all duration-500 hover:shadow-xl bg-white/60 p-10 rounded-[40px]">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-10 transition-transform duration-500 group-hover:rotate-6
+          <Card key={usp.id} className="group hover:border-brand-teal/30 transition-all duration-700 hover:shadow-2xl bg-white/60 p-8 md:p-10 rounded-[48px] border-white/40 flex flex-col items-start text-left">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6
               ${usp.color === 'teal' ? 'bg-brand-teal text-white shadow-teal' : usp.color === 'sunset' ? 'bg-brand-sunset text-white shadow-sunset' : 'bg-brand-blue text-white shadow-blue'}`}>
               <usp.icon className="w-7 h-7" />
             </div>
-            <h3 className="text-lg font-black uppercase italic mb-4">{usp.title}</h3>
-            <p className="text-xs text-brand-navy/50 leading-relaxed mb-8 uppercase font-bold tracking-widest">
+            <h3 className="text-xl font-black uppercase italic mb-4 tracking-tight leading-tight text-brand-navy group-hover:text-brand-teal transition-colors">{usp.title}</h3>
+            <p className="text-[11px] text-brand-navy/60 leading-relaxed mb-8 uppercase font-bold tracking-widest">
               {usp.description}
             </p>
-            <div className="h-0.5 w-12 bg-brand-navy/5 group-hover:w-full transition-all duration-500" />
+            <div className="mt-auto h-1 w-10 bg-brand-navy/5 group-hover:w-full group-hover:bg-brand-teal transition-all duration-700 rounded-full" />
           </Card>
         ))}
       </div>
@@ -764,8 +781,8 @@ export function GamificationSection({ lang = 'EN' }: { lang?: string }) {
   const t = translations[lang as keyof typeof translations] || translations.EN;
 
   const missions = [
-    { type: (t as any).missionIndiv, title: (t as any).missionExample1, icon: Target, img: "https://images.unsplash.com/photo-1510566337590-2fc1f21d0faa?auto=format&fit=crop&q=80&w=400" },
-    { type: (t as any).missionTeam, title: (t as any).missionExample2, icon: Users, img: "https://images.unsplash.com/photo-1543326175-9e6669f6e3c5?auto=format&fit=crop&q=80&w=400" },
+    { type: (t as any).missionIndiv, title: (t as any).missionExample1, icon: Target, img: "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80&w=400" },
+    { type: (t as any).missionTeam, title: (t as any).missionExample2, icon: Users, img: "https://images.unsplash.com/photo-1526232759583-26f173b45e99?auto=format&fit=crop&q=80&w=400" },
   ];
 
   return (
@@ -878,65 +895,83 @@ export function MastersSection({ lang = 'EN' }: { lang?: string }) {
           {COACHES.map((coach, idx) => (
             <motion.div
               key={coach.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.2 }}
-              className="bg-white rounded-[48px] overflow-hidden border border-brand-navy/5 shadow-xl flex flex-col group h-full"
+              transition={{ delay: idx * 0.15, type: 'spring', damping: 20 }}
+              className="group relative flex flex-col h-full"
             >
-              <div className="aspect-[4/3] relative overflow-hidden">
-                <img 
-                  src={coach.image} 
-                  alt={lang === 'RU' ? coach.nameRU : coach.name} 
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
+              {/* Background Layer with Subtle Shadow Softness */}
+              <div className="absolute inset-0 bg-brand-navy/5 rounded-[32px] translate-y-4 blur-2xl group-hover:bg-brand-teal/10 transition-colors duration-500" />
               
-              <div className="p-8 flex-1 flex flex-col">
-                <div className="mb-6">
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-teal mb-2 block">
-                    {lang === 'RU' ? coach.specializationRU : coach.specialization}
-                  </span>
-                  <h3 className="text-2xl font-black italic uppercase text-brand-navy mb-2">
-                    {lang === 'RU' ? coach.nameRU : coach.name}
-                  </h3>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-brand-navy/40 italic">
-                    <Activity className="w-3 h-3" />
-                    {(t as any).masterExp}: {lang === 'RU' ? coach.experienceRU : coach.experience}
+              <div className="relative bg-white rounded-[32px] overflow-hidden border border-brand-navy/5 shadow-sm flex flex-col flex-1 transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:border-brand-teal/20">
+                {/* Image Section */}
+                <div className="aspect-[4/5] relative overflow-hidden">
+                  <img 
+                    src={coach.image} 
+                    alt={lang === 'RU' ? coach.nameRU : coach.name} 
+                    className="w-full h-full object-cover grayscale brightness-90 group-hover:grayscale-0 group-hover:brightness-105 transition-all duration-1000 group-hover:scale-105"
+                    style={{ objectPosition: (coach as any).objectPosition || 'center' }}
+                    referrerPolicy="no-referrer"
+                  />
+                  
+                  {/* Floating Elements */}
+                  <div className="absolute top-6 right-6">
+                    <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center">
+                      <span className="text-lg font-black italic text-white/40">
+                        {(idx + 1).toString().padStart(2, '0')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-700" />
+                  
+                  {/* Info Overlay on Image */}
+                  <div className="absolute bottom-6 left-8 right-8">
+                    <span className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-teal mb-3 block drop-shadow-md">
+                      {lang === 'RU' ? coach.specializationRU : coach.specialization}
+                    </span>
+                    <h3 className="text-4xl font-black italic uppercase text-white leading-none mb-4 drop-shadow-2xl tracking-tight">
+                      {lang === 'RU' ? coach.nameRU : coach.name}
+                    </h3>
+                    <div className="flex items-center gap-2.5 text-[14px] font-black uppercase tracking-widest text-brand-teal drop-shadow-md">
+                      <div className="w-6 h-[2px] bg-brand-teal" />
+                      {(t as any).masterExp}: <span className="text-white">{lang === 'RU' ? coach.experienceRU : coach.experience}</span>
+                    </div>
                   </div>
                 </div>
-
-                <div className="space-y-4 mb-8 flex-1">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-[9px] font-black uppercase text-brand-teal tracking-widest">
-                      <Award className="w-3 h-3" />
-                      {(t as any).masterCert}
+                
+                {/* Content Section */}
+                <div className="p-10 flex-1 flex flex-col bg-gradient-to-b from-white to-brand-cream/10">
+                  <div className="space-y-10 flex-1">
+                    {/* Certifications with Icons */}
+                    <div className="space-y-5">
+                      <div className="flex items-center gap-3 text-[12px] font-black uppercase text-brand-navy/30 tracking-[0.2em]">
+                        <Award className="w-5 h-5 text-brand-sunset" />
+                        {(t as any).masterCert}
+                      </div>
+                      <div className="flex flex-wrap gap-2.5">
+                        {(lang === 'RU' ? coach.certificationsRU : coach.certifications).map((cert, cIdx) => (
+                          <span key={cIdx} className="bg-brand-navy/[0.04] px-4 py-2.5 rounded-xl text-[12px] font-bold text-brand-navy border border-brand-navy/5 shadow-sm hover:border-brand-teal/30 hover:bg-white transition-colors duration-300">
+                            {cert}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <ul className="flex flex-wrap gap-1.5">
-                      {(lang === 'RU' ? coach.certificationsRU : coach.certifications).map((cert, cIdx) => (
-                        <li key={cIdx} className="bg-brand-cream/50 px-2.5 py-1.5 rounded-xl text-[9px] font-bold text-brand-navy border border-brand-navy/5">
-                          {cert}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-[9px] font-black uppercase text-brand-teal tracking-widest">
-                      <BookOpen className="w-3 h-3" />
-                      Bio
+                    {/* Bio with Modern Quote Style */}
+                    <div className="space-y-5 border-l-4 border-brand-teal/30 pl-6 py-1">
+                      <div className="flex items-center gap-3 text-[12px] font-black uppercase text-brand-navy/30 tracking-[0.2em]">
+                        <BookOpen className="w-5 h-5 text-brand-teal" />
+                        Master Bio
+                      </div>
+                      <p className="text-[16px] text-brand-navy/80 font-medium leading-[1.7] italic">
+                        "{lang === 'RU' ? coach.bioRU : coach.bio}"
+                      </p>
                     </div>
-                    <p className="text-[11px] text-brand-navy/60 font-medium leading-relaxed italic">
-                      "{lang === 'RU' ? coach.bioRU : coach.bio}"
-                    </p>
                   </div>
                 </div>
-
-                <Button variant="secondary" className="w-full text-[10px] py-4">
-                  {lang === 'RU' ? 'Подробнее' : 'Read Full Story'}
-                </Button>
               </div>
             </motion.div>
           ))}
@@ -971,6 +1006,79 @@ export function MastersSection({ lang = 'EN' }: { lang?: string }) {
   );
 }
 
+
+export function NewProfilePreview({ lang = 'EN' }: { lang?: string }) {
+  const [athlete, setAthlete] = useState<any>(null);
+  const t = translations[lang as keyof typeof translations] || translations.EN;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const stored = localStorage.getItem('lastRegisteredAthlete');
+    if (stored) {
+      setAthlete(JSON.parse(stored));
+    }
+  }, []);
+
+  if (!athlete) return null;
+
+  const getFullLocation = (id: string) => {
+    const locs: any = {
+      'airport_runway': t.locAirport,
+      'metro_mall': t.locMetroMall,
+      'agmashenebeli': t.locAgmashenebeli,
+      'rustaveli': t.locRustaveli,
+      'heroes_park': t.locHeroesPark,
+    };
+    return locs[id] || id;
+  };
+
+  return (
+    <section className="py-24 bg-brand-stone relative overflow-hidden font-sans border-b border-brand-navy/5">
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="text-center mb-16">
+          <Badge color="teal">{t.landingNewProfile}</Badge>
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-2xl mx-auto"
+        >
+          <div className="glass p-10 md:p-12 rounded-[64px] border-white shadow-3xl flex flex-col md:flex-row items-center gap-10 md:gap-16 hover:bg-white transition-all cursor-pointer group" onClick={() => navigate('/portal')}>
+             <div className="relative">
+                <div className="w-40 h-40 rounded-[48px] bg-brand-teal p-1 rotate-3 group-hover:rotate-0 transition-transform shadow-teal relative z-10 overflow-hidden">
+                  <img src={athlete.profileImage || MOCK_STUDENT.avatar} alt={athlete.name} className="w-full h-full object-cover rounded-[44px]" referrerPolicy="no-referrer" />
+                </div>
+                <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-brand-sunset rounded-full flex items-center justify-center text-white border-4 border-white shadow-xl z-20 group-hover:scale-110 transition-transform">
+                   <Zap className="w-8 h-8 fill-current" />
+                </div>
+             </div>
+
+             <div className="flex-1 text-center md:text-left">
+                <div className="mb-6">
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-teal mb-3 block">{lang === 'RU' ? 'НЕДАВНЯЯ РЕГИСТРАЦИЯ' : 'RECENT REGISTRATION'}</span>
+                  <h3 className="text-4xl md:text-5xl font-black italic uppercase text-brand-navy tracking-tighter leading-none mb-4">{athlete.name}</h3>
+                  <div className="flex items-center justify-center md:justify-start gap-3 text-brand-navy/30">
+                    <MapPin className="w-5 h-5 text-brand-teal" />
+                    <span className="text-sm font-black uppercase tracking-widest italic">{getFullLocation(athlete.location)}</span>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                  <Badge color="teal" className="px-4 py-2 rounded-xl text-[9px] uppercase italic">NOVICE II</Badge>
+                  <Badge color="blue" className="px-4 py-2 rounded-xl text-[9px] uppercase italic bg-brand-navy/5 text-brand-navy/40 border-none">LVL 1</Badge>
+                </div>
+             </div>
+
+             <div className="w-14 h-14 rounded-full bg-brand-navy flex items-center justify-center text-white shrink-0 group-hover:bg-brand-teal group-hover:shadow-teal transition-all hidden md:flex">
+                <ArrowRight className="w-6 h-6" />
+             </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
 
 export function Footer({ lang = 'EN' }: { lang?: string }) {
   const t = translations[lang as keyof typeof translations] || translations.EN;

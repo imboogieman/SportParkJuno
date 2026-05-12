@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Star } from 'lucide-react';
-import { Navbar, Hero, HolisticDevelopment, SocialProof, DigitalShowcase, GamificationSection, MastersSection, USPSection, LocationsSection, Footer } from './components/Landing';
+import { Navbar, Hero, NewProfilePreview, HolisticDevelopment, SocialProof, DigitalShowcase, GamificationSection, MastersSection, USPSection, LocationsSection, Footer } from './components/Landing';
 import { Badge, Button } from './components/UI';
 import { Dashboard } from './components/Dashboard';
 import { translations } from './i18n';
@@ -57,6 +57,7 @@ function Home({ lang, setLang }: { lang: 'EN' | 'GE' | 'RU', setLang: (l: any) =
       />
       <main>
         <Hero lang={lang} />
+        <NewProfilePreview lang={lang} />
         <SocialProof lang={lang} />
         <USPSection lang={lang} />
         <HolisticDevelopment lang={lang} />
