@@ -2,16 +2,76 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default deny
-    match /{document=**} {
-      allow read, write: if false;
-    }
 
     // Registrations collection
     match /registrations/{registrationId} {
       allow create: if isValidRegistration(incoming());
-      // For now, no public read access. Admin role could be added later.
-      allow read: if false; 
+      allow list, get: if true;
+      allow update: if true; // Allow masters to update XP or student details
+    }
+
+    // Athletes collection
+    match /athletes/{athleteId} {
+      allow read, write: if true;
+    }
+
+    // Public Profiles for Landing Page
+    match /public_profiles/{profileId} {
+      allow list: if true; 
+      allow get: if true;
+      allow create: if isValidPublicProfile(incoming());
+    }
+
+    // Masters collection
+    match /masters/{masterId} {
+      allow read: if true;
+      allow write: if masterId == "+995551530272";
+    }
+
+    // Events collection
+    match /events/{eventId} {
+      allow read: if true;
+      allow create: if isValidEvent(incoming(), false);
+      allow update: if isValidEvent(incoming(), true);
+      allow delete: if true;
+    }
+
+    // Event Templates collection
+    match /event_templates/{templateId} {
+      allow read, write: if true;
+    }
+
+    // Invitations collection
+    match /invitations/{invitationId} {
+      allow read: if true; // Both masters and parents need to read
+      allow create: if isValidInvitation(incoming());
+      allow update: if true; // Allow updating status or attendance parameters
+      allow delete: if true; // Masters can withdraw invitations
+    }
+
+    // Parameter Records collection
+    match /parameter_records/{recordId} {
+      allow read: if true;
+      allow create: if isValidParameterRecord(incoming());
+      allow update: if isValidParameterRecord(incoming());
+      allow delete: if true; // Allow masters to delete or redo if needed
+    }
+
+    // Payment History collection
+    match /payment_history/{historyId} {
+      allow read: if true;
+      allow create: if isValidPaymentHistory(incoming());
+    }
+
+    // Exercises collection
+    match /exercises/{exerciseId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
+    // Default deny (Must be last)
+    match /{document=**} {
+      allow read, write: if false;
     }
 
     // --- Helpers ---
@@ -28,23 +88,68 @@ service cloud.firestore {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    function isValidRegistration(data) {
-      return data.keys().hasAll(['parentFullName', 'parentPhone', 'studentName', 'studentAge', 'studentGender', 'studentLocation', 'trainingGroup', 'trainingSchedule', 'paymentType', 'paymentMethod', 'createdAt'])
-        && data.keys().size() >= 11 && data.keys().size() <= 14
-        && data.parentFullName is string && data.parentFullName.size() <= 100
-        && data.parentPhone is string && data.parentPhone.size() <= 20
-        && (data.get('parentEmail', '') == '' || (data.parentEmail is string && data.parentEmail.size() <= 100))
-        && data.studentName is string && data.studentName.size() <= 100
-        && data.studentAge is int && data.studentAge >= 4 && data.studentAge <= 25
-        && data.studentGender in ['male', 'female']
-        && data.studentLocation is string && data.studentLocation.size() <= 100
-        && data.trainingGroup is string && data.trainingGroup.size() <= 100
-        && data.trainingSchedule is string && data.trainingSchedule.size() <= 100
-        && data.paymentType in ['trial', 'monthly']
-        && data.paymentMethod == 'at_field'
-        && (data.get('studentMedicalNotes', '') == '' || (data.studentMedicalNotes is string && data.studentMedicalNotes.size() <= 500))
-        && (data.get('studentProfileImage', '') == '' || (data.studentProfileImage is string && data.studentProfileImage.size() <= 1000000))
+    function isValidInvitation(data) {
+      return data.keys().hasAll(['eventId', 'studentId', 'studentName', 'studentPhone', 'status', 'masterId', 'createdAt'])
+        && data.eventId is string
+        && data.studentId is string
+        && data.studentName is string
+        && data.studentPhone is string
+        && data.status == 'pending'
+        && data.masterId is string
         && data.createdAt == request.time;
+    }
+
+    function isValidEvent(data, isUpdate) {
+      return data.name is string && data.name.size() <= 500
+        && data.description is string && data.description.size() <= 40000
+        && (!('date' in data) || data.date is string)
+        && (!('startTime' in data) || data.startTime is string)
+        && (!('location' in data) || data.location is string)
+        && (!('masterId' in data) || data.masterId is string)
+        && (!('isPublic' in data) || data.isPublic is bool)
+        && (!('createdAt' in data) || data.createdAt != null);
+    }
+
+    function isValidRegistration(data) {
+      return data.keys().hasAll(['parentFullName', 'parentPhone', 'studentName', 'studentAge', 'studentGender', 'studentLocation', 'studentLanguage', 'trainingGroup', 'trainingSchedule', 'paymentType', 'paymentMethod', 'createdAt'])
+        && data.parentFullName is string
+        && data.parentPhone is string
+        && data.studentName is string
+        && data.studentAge is number
+        && data.studentLanguage in ['RU', 'EN']
+        && data.studentGender in ['male', 'female']
+        && data.studentLocation is string
+        && data.paymentType in ['trial', 'foundation', 'monthly']
+        && (!('status' in data) || data.status in ['pending', 'approved', 'declined'])
+        && data.createdAt == request.time;
+    }
+
+    function isValidPublicProfile(data) {
+      return data.keys().hasAll(['studentName', 'studentAge', 'studentLocation', 'studentProfileImage', 'createdAt'])
+        && data.studentName is string
+        && data.studentAge is number
+        && data.studentLocation is string
+        && data.createdAt == request.time;
+    }
+
+    function isValidParameterRecord(data) {
+      return data.keys().hasAll(['athleteId', 'parameterKey', 'parameterGroup', 'value', 'recordedAt', 'masterId', 'masterName', 'createdAt'])
+        && data.athleteId is string
+        && data.parameterKey is string
+        && data.parameterGroup is string
+        && data.value is number
+        && data.recordedAt is string
+        && data.masterId is string
+        && data.masterName is string;
+    }
+
+    function isValidPaymentHistory(data) {
+      return data.keys().hasAll(['athleteId', 'newTotal', 'type', 'label', 'updatedAt'])
+        && data.athleteId is string
+        && data.newTotal is number
+        && data.type in ['purchase', 'reset']
+        && data.label is string
+        && data.updatedAt is string;
     }
   }
 }

@@ -1,0 +1,38 @@
+1023:                  key="role-step"
+1079:                  key="phone-step"
+1153:                  key="code-step"
+1223:                  key="select-step"
+1232:                        key={`${athlete.id || 'athlete'}_${idx}`}
+1369:                  key={item.id}
+1447:              key={item.id} 
+1599:                                key={`${athlete.id || 'sw_athlete'}_${idx}`}
+1788:                        key={`latest_notif_${notif.id || 'notif'}_${idx}`}
+1949:                          key={idx} 
+1985:                      <div key={`${skill.key || 'skill'}_${idx}`} className="group">
+2015:                      key={idx}
+2854:                        key={lgOpt}
+3282:                            key={displayAthlete.totalPaidClasses || 0}
+3299:                              key={num}
+3396:                            <tr key={item.id || index} className="text-brand-navy/85 hover:bg-black/5 transition-colors">
+3473:                    <div key={`profile_notif_${notif.id || 'notif'}_${idx}`} className={`p-4 rounded-2xl flex items-start gap-4 border w-full min-w-0 ${
+3581:          <Card key={idx} className="p-5 sm:p-8 rounded-[24px] sm:rounded-[40px] glass border-white/60 shadow-xl group hover:bg-white transition-all">
+3603:              key={idx} 
+3740:            key={tab.id}
+3779:                key={loc.id}
+3821:                key={`${reg.id || 'reg'}_${idx}`} 
+4234:                    key={`${inv.id || 'inv'}_${idx}`}
+4337:                key={`${event.id || 'event'}_${idx}`}
+4657:                      key={item.instanceId || `${item.id}_${index}`}
+4938:                            key={`${ex.id || 'ex'}_${idx}`}
+5487:                        <div key={`tpl_${tpl.id || 'tpl'}_${i}`} className="relative group min-h-[58px]">
+5590:                        <option key={`option_${loc.id}`} value={loc.id}>
+5826:                                key={`${student.id || 'student_sched'}_${idx}`}
+5930:              <Card key={`${event.id || 'event'}_${idx}`} className="p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] glass border-white/60 hover:bg-white transition-all shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 group">
+6435:                  <Card key={`${inv.id || 'inv'}_${idx}`} className="p-5 sm:p-8 rounded-[24px] sm:rounded-[48px] glass border-white/60 flex flex-col md:flex-row items-center gap-6 sm:gap-8 group hover:bg-white transition-all shadow-xl relative overflow-hidden">
+6712:              key={`${student.id || 'student'}_${idx}`}
+6773:              <div key={i} className="space-y-3">
+6895:            key={`${badge.title || 'badge'}_${i}`}
+7040:                key={`${event.invitationId || event.id || 'event'}_${idx}`}
+7385:                  <div key={`${skill.key || 'skill'}_${idx}`} className="p-5 bg-white/40 border border-brand-navy/5 rounded-2xl group flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/80 transition-colors">
+7510:                key={filterOpt}
+7541:                  key={`${notif.id || 'notif'}_${idx}`}

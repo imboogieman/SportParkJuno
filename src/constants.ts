@@ -126,13 +126,15 @@ export const COACHES = [
 
 export const LOCATIONS = [
   { 
-    id: 'l1',
-    name: 'Aeroport Runway', 
-    nameRU: 'Взлётная полоса Аэропорта',
+    id: 'airport_runway',
+    name: 'Airport runway', 
+    nameRU: 'Взлётка',
     nameGE: 'აეროპორტის ასაფრენი ბილიკი',
-    address: 'Batumi, Airport Highway area',
-    addressRU: 'Батуми, район Шоссе Аэропорта',
-    addressGE: 'ბათუმი, აეროპორტის გზატკეცილის ტერიტორია',
+    nameTR: 'Havaalanı pisti',
+    address: 'Giorgi Antsukhelidze St',
+    addressRU: 'ул. Георгия Анцухелидзе',
+    addressGE: 'გიორგი ანწუხელიძის ქ.',
+    addressTR: 'Giorgi Antsukhelidze Sk',
     coordinates: { x: 40, y: 80 },
     schedule: [
       { days: 'Mon, Wed, Fri', time: '16:00 - 18:00' },
@@ -140,13 +142,15 @@ export const LOCATIONS = [
     ]
   },
   { 
-    id: 'l2',
-    name: 'Metro Mall', 
-    nameRU: 'Метро Молл',
-    nameGE: 'მეტრო მოლი',
-    address: 'Batumi, Lech and Maria Kaczynski St',
-    addressRU: 'Батуми, ул. Леха и Марии Качиньских',
-    addressGE: 'ბათუმი, ლეხ და მარია კაჩინსკების ქ.',
+    id: 'metro_mall',
+    name: 'Metrogorod', 
+    nameRU: 'Метрогород',
+    nameGE: 'მეტროგოროდი',
+    nameTR: 'Metrogorod',
+    address: '6 Grigol Lortkipanidze St',
+    addressRU: 'ул. Григола Лорткипанидзе, 6',
+    addressGE: 'გრიგოლ ლორთქიფანიძის ქ. 6',
+    addressTR: '6 Grigol Lortkipanidze Sk',
     coordinates: { x: 45, y: 70 },
     schedule: [
       { days: 'Tue, Thu', time: '17:00 - 19:00' },
@@ -154,13 +158,15 @@ export const LOCATIONS = [
     ]
   },
   { 
-    id: 'l3',
-    name: 'Aghmashenebeli', 
+    id: 'agmashenebeli',
+    name: 'Agmashenebeli', 
     nameRU: 'Агмашенебели',
     nameGE: 'აღმაშენებელი',
-    address: 'Batumi, Aghmashenebeli Ave',
-    addressRU: 'Батуми, пр. Агмашенебели',
-    addressGE: 'ბათუმი, აღმაშენებლის გამზ.',
+    nameTR: 'Agmashenebeli',
+    address: '12a Agmashenebeli St',
+    addressRU: 'ул. Агмашенебели, 12а',
+    addressGE: 'აღმაშენებლის ქ. 12ა',
+    addressTR: '12a Agmashenebeli Sk',
     coordinates: { x: 55, y: 55 },
     schedule: [
       { days: 'Mon, Fri', time: '18:00 - 20:00' },
@@ -168,30 +174,67 @@ export const LOCATIONS = [
     ]
   },
   { 
-    id: 'l4',
-    name: 'Rustaveli', 
-    nameRU: 'Руставели',
-    nameGE: 'რუსთაველი',
-    address: 'Batumi, Rustaveli Ave / Seafront',
-    addressRU: 'Батуми, пр. Руставели / Набережная',
-    addressGE: 'ბათუმი, რუსთაველის გამზ. / სანაპირო',
-    coordinates: { x: 60, y: 35 },
+    id: 'pirosmani_5',
+    name: 'Pirosmani 5', 
+    nameRU: 'Пиросмани 5',
+    nameGE: 'ფიროსმანის 5',
+    nameTR: 'Pirosmani 5',
+    address: '5 Niko Pirosmani St',
+    addressRU: 'ул. Нико Пиросмани, 5',
+    addressGE: 'ნიკო ფიროსმანის ქ. 5',
+    addressTR: '5 Niko Pirosmani Sk',
+    coordinates: { x: 50, y: 40 },
     schedule: [
-      { days: 'Weekday Evenings', time: '19:00 - 21:00' },
-      { days: 'Morning Bliss', time: '08:00 - 10:00' }
+      { days: 'Mon, Wed, Fri', time: '17:00 - 19:00' },
+      { days: 'Sat', time: '11:00 - 13:00' }
     ]
   },
   { 
-    id: 'l5',
-    name: 'Hero Park', 
+    id: 'kaczynski_5',
+    name: 'Kaczynski 5', 
+    nameRU: 'Качинских 5',
+    nameGE: 'კაჩინსკის 5',
+    nameTR: 'Kaczynski 5',
+    address: '5 Lech and Maria Kaczynski St',
+    addressRU: 'ул. Леха и Марии Качиньских, 5',
+    addressGE: 'ლეხ და მარია კაჩინსკების ქ. 5',
+    addressTR: '5 Lech ve Maria Kaczynski Sk',
+    coordinates: { x: 42, y: 58 },
+    schedule: [
+      { days: 'Tue, Thu', time: '16:00 - 18:00' },
+      { days: 'Sun', time: '11:00 - 13:00' }
+    ]
+  },
+  { 
+    id: 'batumi_boulevard',
+    name: 'Batumi Boulevard', 
+    nameRU: 'Батумский бульвар',
+    nameGE: 'ბათუმის ბულვარი',
+    nameTR: 'Batum Bulvarı',
+    address: 'Ninoshvili St',
+    addressRU: 'ул. Ниношвили',
+    addressGE: 'ნინოშვილის ქ.',
+    addressTR: 'Ninoshvili Sk',
+    coordinates: { x: 30, y: 60 },
+    schedule: [
+      { days: 'Tue, Thu', time: '18:00 - 20:00' },
+      { days: 'Sun', time: '12:00 - 14:00' }
+    ]
+  },
+  { 
+    id: 'heroes_park',
+    name: 'Heroes Park', 
     nameRU: 'Парк Героев',
     nameGE: 'გმირთა პარკი',
-    address: 'Batumi, Heroes Square Area',
-    addressRU: 'Батуми, район площади Героев',
-    addressGE: 'ბათუმი, გმირთა მოედნის ტერიტორია',
-    coordinates: { x: 70, y: 45 },
+    nameTR: 'Kahramanlar Parkı',
+    address: '2 Sulkhan-Saba Orbeliani St',
+    addressRU: 'ул. Сулхан-Саба Орбелиани, 2',
+    addressGE: 'სულხან-საბა ორბელიანის ქ. 2',
+    addressTR: '2 Sulkhan-Saba Orbeliani Sk',
+    coordinates: { x: 60, y: 35 },
     schedule: [
-      { days: 'Daily', time: '16:00 - 21:00' }
+      { days: 'Mon, Wed, Fri', time: '15:00 - 17:00' },
+      { days: 'Sat', time: '10:00 - 12:00' }
     ]
   }
 ];

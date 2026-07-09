@@ -32,11 +32,11 @@ export default function ProfessionalCoaching({ lang = 'EN' }: { lang?: string })
         <div className="w-20 hidden md:block" />
       </nav>
 
-      <main className="pt-48 pb-32">
+      <main className="pt-32 md:pt-48 pb-32">
         <section className="container mx-auto px-6">
-          <div className="text-center mb-24 max-w-4xl mx-auto">
+          <div className="text-center mb-16 md:mb-24 max-w-4xl mx-auto">
             <Badge color="teal" className="px-6 py-2 rounded-xl italic">{t.methBadge}</Badge>
-            <h1 className="text-6xl md:text-9xl font-black italic uppercase tracking-tighter mt-10 mb-12 text-brand-navy leading-[0.85]">
+            <h1 className="text-3xl xs:text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black italic uppercase tracking-tighter mt-6 md:mt-10 mb-8 md:mb-12 text-brand-navy leading-[0.85] break-words">
               {t.methTitle_1} <br /> 
               <span className="text-brand-sunset drop-shadow-sm">{t.methTitle_2}</span>
             </h1>

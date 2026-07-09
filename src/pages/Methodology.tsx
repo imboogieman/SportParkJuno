@@ -142,7 +142,7 @@ export default function Methodology({ lang = 'RU', setLang }: { lang?: string, s
             </Badge>
             <h1 className="text-6xl md:text-9xl font-black italic uppercase tracking-tighter leading-[0.85] mb-10 text-brand-navy">
               {lang === 'RU' ? 'МЕТОДОЛОГИЯ' : lang === 'GE' ? 'მეთოდოლოგია' : 'METHODOLOGY'} <br /> 
-              <span className="text-brand-teal drop-shadow-sm">{lang === 'RU' ? 'АКАДЕМИИ' : lang === 'GE' ? 'აკადემიის' : 'ACADEMY'}</span>
+              <span className="text-brand-teal drop-shadow-sm">{lang === 'RU' ? 'ПРОГРАММЫ' : lang === 'GE' ? 'აკადემიის' : 'ACADEMY'}</span>
             </h1>
             <p className="text-brand-navy/60 max-w-2xl mx-auto text-xl font-medium leading-relaxed italic">
               {lang === 'RU' 
@@ -268,7 +268,7 @@ export default function Methodology({ lang = 'RU', setLang }: { lang?: string, s
         </div>
       </section>
 
-      <Footer lang={lang} />
+      <Footer lang={lang} onPortalClick={() => navigate('/portal')} />
     </div>
   );
 }

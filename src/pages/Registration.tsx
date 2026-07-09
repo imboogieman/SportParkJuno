@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Phone, GraduationCap, Calendar, MapPin, ClipboardList, Camera, ArrowRight, ArrowLeft, CheckCircle2, Loader2, Clock, CreditCard, LayoutGrid, ShieldCheck, X } from 'lucide-react';
 import { translations } from '../i18n';
 import { Button, Card, Badge } from '../components/UI';
+import { TermsModal } from '../components/TermsModal';
 import { db, auth } from '../lib/firebase';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { collection, addDoc, serverTimestamp, doc, getDocFromCache } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDocFromCache, query, where, getDocs, limit } from 'firebase/firestore';
 import { signInWithPhoneNumber } from 'firebase/auth';
 import { PatternFormat } from 'react-number-format';
 
@@ -63,6 +64,7 @@ interface RegistrationData {
     age: string;
     gender: 'male' | 'female';
     location: string;
+    language: 'RU' | 'EN' | 'GE' | 'TR';
     medicalNotes: string;
     profileImage: string | null;
   };
@@ -71,7 +73,7 @@ interface RegistrationData {
     schedule: string;
   };
   payment: {
-    type: 'trial' | 'monthly';
+    type: 'trial' | 'foundation' | 'monthly';
     method: 'at_field';
   };
 }
@@ -79,7 +81,18 @@ interface RegistrationData {
 export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
   const t = (translations[lang] as any);
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const location = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const isAddingNewAthlete = useMemo(() => searchParams.get('add_athlete') === 'true', [searchParams]);
+
+  const [step, setStep] = useState<number | 'loading'>(() => {
+    return 'loading'; // Always show loading then decide in useEffect
+  });
+  const [isLoggedInFlow, setIsLoggedInFlow] = useState(() => {
+    const storedAthlete = localStorage.getItem('athleteAccount');
+    const storedMaster = localStorage.getItem('masterAccount');
+    return !!(auth.currentUser?.phoneNumber || storedAthlete || storedMaster || isAddingNewAthlete);
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   
@@ -90,6 +103,7 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
   const [agreedToTerms, setAgreedToTerms] = useState(true);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [showDuplicateError, setShowDuplicateError] = useState(false);
 
   useEffect(() => {
     // Initialize reCAPTCHA once and keep it stable
@@ -146,6 +160,130 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
     testConnection();
   }, []);
 
+  useEffect(() => {
+    // Listen for auth state changes to pre-fill parent info
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      const storedAthlete = localStorage.getItem('athleteAccount');
+      const storedMaster = localStorage.getItem('masterAccount');
+      
+      if (!isAddingNewAthlete && (storedAthlete || storedMaster)) {
+        navigate('/portal');
+        return;
+      }
+
+      const hasStoredSession = false;
+      
+      console.log("Auth State Changed:", { 
+        hasUser: !!user, 
+        phone: user?.phoneNumber, 
+        hasStoredSession,
+        currentStep: step,
+        isAddingNewAthlete
+      });
+
+      if (isAddingNewAthlete) {
+        setIsLoggedInFlow(true);
+        let parentName = '';
+        let cleanPhone = '';
+
+        if (storedAthlete) {
+          try {
+            const data = JSON.parse(storedAthlete);
+            parentName = data.parentFullName || '';
+            const rawPhone = data.parentPhone || '';
+            cleanPhone = rawPhone.replace('+995', '').replace(/\s/g, '');
+          } catch (e) {
+            console.error("Error parsing storedAthlete", e);
+          }
+        }
+
+        if (user?.phoneNumber) {
+          const userPhone = user.phoneNumber;
+          const userCleanPhone = userPhone.replace('+995', '').replace(/\s/g, '');
+          if (!cleanPhone) {
+            cleanPhone = userCleanPhone;
+          }
+
+          if (!parentName) {
+            try {
+              const q = query(
+                collection(db, 'registrations'), 
+                where('parentPhone', '==', userPhone),
+                limit(1)
+              );
+              const snapshot = await getDocs(q);
+              if (!snapshot.empty) {
+                const existingReg = snapshot.docs[0].data();
+                parentName = existingReg.parentFullName || '';
+              }
+            } catch (err) {
+              console.error("Error fetching parent info:", err);
+            }
+          }
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          parent: {
+            fullName: parentName || prev.parent.fullName,
+            phone: cleanPhone || prev.parent.phone
+          }
+        }));
+
+        setStep(2);
+        return;
+      }
+
+      if (user?.phoneNumber) {
+        setIsLoggedInFlow(true);
+        let parentPhone = user.phoneNumber;
+        let parentName = '';
+
+        const cleanPhone = parentPhone.replace('+995', '').replace(/\s/g, '');
+        
+        try {
+          const q = query(
+            collection(db, 'registrations'), 
+            where('parentPhone', '==', parentPhone),
+            limit(1)
+          );
+          const snapshot = await getDocs(q);
+          if (!snapshot.empty) {
+            const existingReg = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+            localStorage.setItem('athleteAccount', JSON.stringify(existingReg));
+            navigate('/portal');
+            return;
+          }
+
+          setFormData(prev => ({
+            ...prev,
+            parent: {
+              fullName: parentName || prev.parent.fullName,
+              phone: cleanPhone || prev.parent.phone
+            }
+          }));
+        } catch (err) {
+          console.error("Error fetching parent info:", err);
+          setFormData(prev => ({
+            ...prev,
+            parent: {
+              ...prev.parent,
+              phone: cleanPhone || prev.parent.phone
+            }
+          }));
+        }
+
+        // Keep user at step 1 to confirm their info, even if logged in
+        setStep(1);
+      } else if (user === null) {
+        setIsLoggedInFlow(false);
+        setStep(1);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [isAddingNewAthlete]);
+
   const [formData, setFormData] = useState<RegistrationData>({
     parent: {
       fullName: '',
@@ -156,6 +294,7 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
       age: '',
       gender: 'male',
       location: '',
+      language: (['RU', 'EN'].includes(lang) ? lang : 'RU') as any,
       medicalNotes: '',
       profileImage: null,
     },
@@ -169,6 +308,33 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
     },
   });
 
+  const pricingValues = useMemo(() => {
+    const age = parseInt(formData.student.age, 10) || 8;
+    if (age >= 5 && age <= 7) {
+      return {
+        foundation: 145,
+        foundationPerClass: '18.1',
+        monthly: 199,
+        monthlyPerClass: '16.6',
+      };
+    } else if (age >= 12) {
+      return {
+        foundation: 189,
+        foundationPerClass: '23.6',
+        monthly: 234,
+        monthlyPerClass: '19.5',
+      };
+    } else {
+      // 8-11
+      return {
+        foundation: 177,
+        foundationPerClass: '22.1',
+        monthly: 222,
+        monthlyPerClass: '18.5',
+      };
+    }
+  }, [formData.student.age]);
+
   const updateParentField = (field: keyof RegistrationData['parent'], value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -179,7 +345,8 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
   const updateStudentField = (field: keyof RegistrationData['student'], value: any) => {
     setFormData(prev => ({
       ...prev,
-      student: { ...prev.student, [field]: value }
+      student: { ...prev.student, [field]: value },
+      training: field === 'location' ? { ...prev.training, schedule: '' } : prev.training
     }));
   };
 
@@ -228,8 +395,26 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
       // Ensure E.164 format: +995XXXXXXXXX (995 is the country code, cleanPhone is 9 digits)
       const fullPhone = `+995${cleanPhone}`;
       console.log("Full Phone prepared:", fullPhone);
-      
+
       try {
+        // Only check for duplicates if user is NOT logged in.
+        // If they are logged in, we allow multiple students per phone.
+        if (!auth.currentUser) {
+          const q = query(collection(db, 'registrations'), where('parentPhone', '==', fullPhone));
+          const querySnapshot = await getDocs(q);
+          
+          if (!querySnapshot.empty) {
+            setShowDuplicateError(true);
+            setIsVerifying(false);
+            return;
+          }
+        } else if (auth.currentUser.phoneNumber === fullPhone) {
+          // Already logged in with this number, just skip to student info
+          setStep(2);
+          setIsVerifying(false);
+          return;
+        }
+
         let verifier = (window as any).recaptchaVerifier;
         
         if (!verifier) {
@@ -278,7 +463,24 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
     setIsVerifying(true);
     setSubmitError(null);
     try {
-      await confirmationResult.confirm(otp);
+      const userCredential = await confirmationResult.confirm(otp);
+      const user = userCredential.user;
+      
+      if (user?.phoneNumber) {
+        const q = query(
+          collection(db, 'registrations'),
+          where('parentPhone', '==', user.phoneNumber),
+          limit(1)
+        );
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const existingAthlete = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+          localStorage.setItem('athleteAccount', JSON.stringify(existingAthlete));
+          navigate('/portal');
+          return;
+        }
+      }
+      
       setStep(2);
     } catch (error) {
       console.error("OTP Error", error);
@@ -289,9 +491,11 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
   };
 
   const handlePrev = () => {
-    if (step === 2) setStep(1);
-    else if (step === 1.5) setStep(1);
-    else setStep(prev => Math.floor(prev - 1));
+    if (step === 2) {
+      if (isLoggedInFlow) navigate('/portal');
+      else setStep(1);
+    } else if (step === 1.5) setStep(1);
+    else setStep(prev => Math.floor((prev as number) - 1));
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -311,19 +515,33 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
         studentAge: parseInt(formData.student.age, 10),
         studentGender: formData.student.gender,
         studentLocation: formData.student.location,
+        studentLanguage: formData.student.language,
         studentMedicalNotes: formData.student.medicalNotes || '',
         studentProfileImage: formData.student.profileImage || '',
         trainingGroup: formData.training.group,
         trainingSchedule: formData.training.schedule,
         paymentType: formData.payment.type,
         paymentMethod: formData.payment.method,
+        xp: 0,
+        status: 'pending',
         createdAt: serverTimestamp(),
       };
 
-      await addDoc(collection(db, registrationPath), docData);
+      const docRef = await addDoc(collection(db, registrationPath), docData);
+      
+      // Write public profile for landing page preview (no PII)
+      const publicProfileData = {
+        studentName: formData.student.name,
+        studentAge: parseInt(formData.student.age, 10),
+        studentLocation: formData.student.location,
+        studentProfileImage: formData.student.profileImage || '',
+        createdAt: serverTimestamp(),
+      };
+      await addDoc(collection(db, 'public_profiles'), publicProfileData);
       
       // Save for profile preview on landing and cabinet
       const lastAthlete = {
+        id: docRef.id,
         name: formData.student.name,
         location: formData.student.location,
         profileImage: formData.student.profileImage,
@@ -331,8 +549,16 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
         schedule: formData.training.schedule,
         group: formData.training.group
       };
+
+      const accountData = {
+        id: docRef.id,
+        ...docData,
+        createdAt: new Date().toISOString() // Simulating for local storage
+      };
+
       localStorage.setItem('lastRegisteredAthlete', JSON.stringify(lastAthlete));
-      localStorage.setItem('athleteAccount', JSON.stringify(docData));
+      localStorage.setItem('athleteAccount', JSON.stringify(accountData));
+      localStorage.setItem('justRegistered', 'true');
       
       setStep(5);
     } catch (error) {
@@ -353,6 +579,103 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
     }
   }, [ageToGroup]);
 
+  const scheduleOptions = useMemo(() => {
+    const loc = formData.student.location;
+    if (loc === 'metro_mall') {
+      return [
+        {
+          value: 'tue_thu_sun_10',
+          label: lang === 'RU' 
+            ? 'ВТ / ЧТ / ВС — 10:00 am' 
+            : lang === 'GE' 
+            ? 'სამშ / ხუთშ / კვირა — 10:00 am' 
+            : 'Tue, Thursday, Sunday - 10:00 am'
+        },
+        {
+          value: 'tue_thu_sun_18',
+          label: lang === 'RU'
+            ? 'ВТ / ЧТ / ВС — 18:00 pm'
+            : lang === 'GE'
+            ? 'სამშ / ხუთშ / კვირა — 18:00 pm'
+            : 'Tue, Thursday, Sunday - 18:00 pm'
+        }
+      ];
+    } else if (loc === 'agmashenebeli') {
+      return [
+        {
+          value: 'mon_wed_fri_10',
+          label: lang === 'RU'
+            ? 'ПН / СР / ПТ — 10:00 am'
+            : lang === 'GE'
+            ? 'ორშ / ოთხშ / პარ — 10:00 am'
+            : 'Mon, Wednesday, Friday - 10:00 am'
+        },
+        {
+          value: 'mon_wed_fri_18_pm',
+          label: lang === 'RU'
+            ? 'ПН / СР / ПТ — 18:00 pm'
+            : lang === 'GE'
+            ? 'ორშ / ოთხშ / პარ — 18:00 pm'
+            : 'Mon, Wednesday, Friday - 18:00 pm'
+        }
+      ];
+    } else if (loc === 'heroes_park') {
+      return [
+        {
+          value: 'mon_wed_fri_15_pm',
+          label: lang === 'RU'
+            ? 'ПН / СР / ПТ — 15:00 pm'
+            : lang === 'GE'
+            ? 'ორშ / ოთხშ / პარ — 15:00 pm'
+            : 'Mon, Wednesday, Friday - 15:00 pm'
+        },
+        {
+          value: 'sat_10',
+          label: lang === 'RU'
+            ? 'СБ — 10:00 am'
+            : lang === 'GE'
+            ? 'შაბ — 10:00 am'
+            : 'Sat - 10:00 am'
+        }
+      ];
+    } else {
+      return [
+        {
+          value: 'mon_wed_fri_morning',
+          label: lang === 'RU'
+            ? 'ПН / СР / ПТ — утро'
+            : lang === 'GE'
+            ? 'ორშ / ოთხშ / პარ — დილა'
+            : 'Mon, Wednesday, Friday - morning'
+        },
+        {
+          value: 'mon_wed_fri_evening',
+          label: lang === 'RU'
+            ? 'ПН / СР / ПТ — вечер'
+            : lang === 'GE'
+            ? 'ორშ / ოთხშ / პარ — საღამო'
+            : 'Mon, Wednesday, Friday - evening'
+        },
+        {
+          value: 'tue_thu_sun_morning',
+          label: lang === 'RU'
+            ? 'ВТ / ЧТ / ВС — утро'
+            : lang === 'GE'
+            ? 'სამშ / ხუთშ / კვირა — დილა'
+            : 'Tue, Thursday, Sunday - morning'
+        },
+        {
+          value: 'tue_thu_sun_evening',
+          label: lang === 'RU'
+            ? 'ВТ / ЧТ / ВС — вечер'
+            : lang === 'GE'
+            ? 'სამშ / ხუთშ / კვირა — საღამო'
+            : 'Tue, Thursday, Sunday - evening'
+        }
+      ];
+    }
+  }, [formData.student.location, lang]);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -363,6 +686,17 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
       reader.readAsDataURL(file);
     }
   };
+
+  if (step === 'loading') {
+    return (
+      <div className="min-h-screen bg-brand-cream flex flex-col items-center justify-center p-6 text-center">
+        <Loader2 className="w-12 h-12 text-brand-teal animate-spin mb-6" />
+        <p className="text-xs font-black uppercase tracking-[0.3em] text-brand-navy animate-pulse italic">
+          {lang === 'RU' ? 'Загрузка профиля...' : 'Checking Authorization...'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-brand-cream pt-6 pb-12 md:py-24 px-4 sm:px-6 relative flex flex-col justify-start md:justify-center overflow-hidden font-sans">
@@ -384,7 +718,68 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
         </div>
 
         <AnimatePresence mode="wait">
-          {step === 1 && (
+          {showDuplicateError ? (
+            <motion.div
+              key="duplicateError"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <Card className="p-8 md:p-12 glass border-white shadow-3xl rounded-[48px] md:rounded-[64px] text-center">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-[32px] bg-red-100 flex items-center justify-center mx-auto mb-8 shadow-inner">
+                  <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-red-500" />
+                </div>
+                
+                <h2 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter mb-4 leading-none text-brand-navy">{t.regDuplicatePhone}</h2>
+                <p className="text-xs md:text-sm font-black text-brand-navy/30 italic uppercase tracking-widest leading-relaxed max-w-xs mx-auto mb-10">
+                  {t.regDuplicatePhoneDesc}
+                </p>
+
+                <div className="flex flex-col gap-4">
+                  <Button 
+                    className="w-full h-18 !rounded-[24px] italic uppercase tracking-widest text-xs font-black shadow-teal" 
+                    onClick={async () => {
+                      setIsVerifying(true);
+                      const cleanPhone = formData.parent.phone.replace(/\D/g, '');
+                      const fullPhone = `+995${cleanPhone}`;
+                      try {
+                        const q = query(
+                          collection(db, 'registrations'), 
+                          where('parentPhone', '==', fullPhone),
+                          limit(1)
+                        );
+                        const snapshot = await getDocs(q);
+                        if (!snapshot.empty) {
+                          const existingReg = snapshot.docs[0].data();
+                          setFormData(prev => ({
+                            ...prev,
+                            parent: {
+                              fullName: existingReg.parentFullName || prev.parent.fullName,
+                              phone: cleanPhone
+                            }
+                          }));
+                        }
+                      } catch (err) {
+                        console.error("Error pre-filling parent details:", err);
+                      }
+                      setIsVerifying(false);
+                      setShowDuplicateError(false);
+                      setStep(2);
+                    }}
+                  >
+                    {t.regDuplicateSignIn} <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="w-full h-16 !rounded-[24px] italic uppercase tracking-widest text-[10px] font-black border-brand-navy/10 hover:bg-black/5" 
+                    onClick={() => setShowDuplicateError(false)}
+                  >
+                    {t.regDuplicateUseOther}
+                  </Button>
+                </div>
+              </Card>
+            </motion.div>
+          ) : step === 1 && (
             <motion.div
               key="step1"
               initial={{ opacity: 0, y: 20 }}
@@ -404,10 +799,43 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
                     <User className="text-brand-teal w-8 h-8" />
                   </div>
                   <div>
-                    <h2 className="text-2xl md:text-3xl font-black italic uppercase tracking-tight leading-none mb-1">{t.regParentTitle}</h2>
+                    <h2 className="text-2xl md:text-3xl font-black italic uppercase tracking-tight leading-none mb-1">
+                      {isLoggedInFlow ? (lang === 'RU' ? 'Проверка родителя' : 'Confirm Guardian') : t.regParentTitle}
+                    </h2>
                     <p className="text-xs font-black uppercase tracking-widest text-brand-navy/30 italic">Step 01 / Primary Guardian</p>
                   </div>
                 </div>
+
+                {isLoggedInFlow ? (
+                  <div className="mb-8 p-4 bg-brand-sunset/5 rounded-2xl border border-brand-sunset/10 flex items-center justify-between gap-4">
+                    <p className="text-[10px] font-black uppercase italic tracking-widest text-brand-navy/40">
+                      {lang === 'RU' ? 'Вы вошли в систему' : 'You are logged in'}
+                    </p>
+                    <button 
+                      onClick={() => {
+                        localStorage.removeItem('athleteAccount');
+                        localStorage.removeItem('masterAccount');
+                        auth.signOut();
+                        window.location.reload();
+                      }}
+                      className="text-[10px] font-black uppercase italic tracking-widest text-brand-sunset hover:underline"
+                    >
+                      {lang === 'RU' ? 'Выйти / Очистить форму' : 'Logout / Clear Form'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mb-8 p-4 bg-brand-teal/5 rounded-2xl border border-brand-teal/10 flex items-center justify-between gap-4">
+                    <p className="text-[10px] font-black uppercase italic tracking-widest text-brand-navy/40">
+                      {lang === 'RU' ? 'Уже есть аккаунт?' : 'Already have an account?'}
+                    </p>
+                    <button 
+                      onClick={() => navigate('/portal')}
+                      className="text-[10px] font-black uppercase italic tracking-widest text-brand-teal hover:underline"
+                    >
+                      {lang === 'RU' ? 'Войти в портал' : 'Login to Portal'}
+                    </button>
+                  </div>
+                )}
 
                 <div className="space-y-8 text-left">
                   <div>
@@ -429,7 +857,7 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
                   <div>
                     <label className="block text-xs uppercase font-black tracking-[0.4em] text-brand-navy/40 mb-3 px-2 italic">{t.regParentPhone}</label>
                     <div className="relative">
-                      <Phone className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-navy/20" />
+                      <Phone className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-navy/20 pointer-events-none z-10" />
                       <PatternFormat 
                         format="### ### ###"
                         value={formData.parent.phone}
@@ -437,13 +865,13 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
                           // values.value will be just the 9 digits
                           updateParentField('phone', values.value);
                         }}
-                        className={`w-full h-16 md:h-18 pl-20 pr-6 bg-white/40 border-2 rounded-[28px] focus:outline-none focus:border-brand-teal transition-all font-black uppercase italic tracking-tight text-base md:text-lg shadow-sm ${validationErrors.parentPhone ? 'border-red-500' : 'border-brand-navy/5'}`} 
+                        className={`w-full h-16 md:h-18 pl-[115px] pr-6 bg-white/40 border-2 rounded-[28px] focus:outline-none focus:border-brand-teal transition-all font-black uppercase italic tracking-tight text-base md:text-lg shadow-sm ${validationErrors.parentPhone ? 'border-red-500' : 'border-brand-navy/5'}`} 
                         placeholder="5__ ___ ___"
                         required
                         type="tel"
                         allowEmptyFormatting
                       />
-                      <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-brand-navy/60 italic text-base md:text-lg">+995</span>
+                      <span className="absolute left-14 top-1/2 -translate-y-1/2 font-black text-brand-navy/60 italic text-base md:text-lg select-none pointer-events-none z-10">+995</span>
                     </div>
                     {validationErrors.parentPhone && <p className="text-[10px] text-red-500 mt-2 font-black uppercase px-2">{validationErrors.parentPhone}</p>}
                   </div>
@@ -623,19 +1051,23 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
               exit={{ opacity: 0, y: -20 }}
             >
               <Card className="p-8 md:p-12 glass border-white shadow-3xl rounded-[48px] md:rounded-[64px] relative">
-                <button 
-                  onClick={() => setStep(1)}
-                  className="absolute top-6 right-6 px-4 py-2 rounded-full border border-brand-navy/10 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-brand-navy/40 hover:text-brand-teal hover:border-brand-teal hover:bg-white transition-all bg-white/40"
-                >
-                  <ArrowLeft className="w-3 h-3" /> Step 01
-                </button>
+                {!isLoggedInFlow && (
+                  <button 
+                    onClick={() => setStep(1)}
+                    className="absolute top-6 right-6 px-4 py-2 rounded-full border border-brand-navy/10 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-brand-navy/40 hover:text-brand-teal hover:border-brand-teal hover:bg-white transition-all bg-white/40"
+                  >
+                    <ArrowLeft className="w-3 h-3" /> Step 01
+                  </button>
+                )}
                 <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
                   <div className="w-12 h-12 md:w-16 md:h-16 rounded-[20px] md:rounded-[24px] bg-brand-teal/5 flex items-center justify-center shadow-inner shrink-0">
                     <GraduationCap className="text-brand-teal w-6 h-6 md:w-8 md:h-8" />
                   </div>
-                  <div className="pr-12 md:pr-0">
+                  <div>
                     <h2 className="text-2xl md:text-3xl font-black italic uppercase tracking-tight leading-none mb-1">{t.regStudentTitle}</h2>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-brand-navy/30 italic">Step 02 / Athlete Profile</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-brand-navy/30 italic">
+                      {isLoggedInFlow ? 'Step 01 / Athlete Profile' : 'Step 02 / Athlete Profile'}
+                    </p>
                   </div>
                 </div>
 
@@ -728,12 +1160,35 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
                         <option value="airport_runway">{t.locAirport}</option>
                         <option value="metro_mall">{t.locMetroMall}</option>
                         <option value="agmashenebeli">{t.locAgmashenebeli}</option>
-                        <option value="rustaveli">{t.locRustaveli}</option>
+                        <option value="pirosmani_5">{t.locPirosmani5}</option>
+                        <option value="kaczynski_5">{t.locKaczynski5}</option>
+                        <option value="batumi_boulevard">{t.locBatumiBoulevard}</option>
                         <option value="heroes_park">{t.locHeroesPark}</option>
                       </select>
                       <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-20">
                         <ArrowRight className="w-4 h-4 rotate-90" />
                       </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] md:text-xs uppercase font-black tracking-[0.4em] text-brand-navy/40 mb-2 md:mb-3 px-2 italic">{t.regStudentLanguage}</label>
+                    <div className="flex bg-white/40 p-1.5 rounded-[20px] md:rounded-[24px] border-2 border-brand-navy/5 h-16 md:h-18 shadow-sm gap-1">
+                      {([
+                        { code: 'RU', label: t.langRussian },
+                        { code: 'EN', label: t.langEnglish }
+                      ] as const).map((item) => (
+                        <button
+                          type="button"
+                          key={item.code}
+                          onClick={() => updateStudentField('language', item.code)}
+                          className={`flex-1 rounded-[14px] md:rounded-[18px] text-[9px] md:text-[10px] font-black uppercase tracking-wider transition-all italic ${
+                            formData.student.language === item.code ? 'bg-brand-navy text-white shadow-xl' : 'text-brand-navy/30 hover:bg-black/5'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -782,7 +1237,9 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
                   </div>
                   <div>
                     <h2 className="text-2xl md:text-3xl font-black italic uppercase tracking-tight leading-none mb-1 md:mb-2">{t.regClassTitle}</h2>
-                    <p className="text-[10px] md:text-xs font-black uppercase tracking-widest text-brand-navy/30 italic">Step 03 / Training Group</p>
+                    <p className="text-[10px] md:text-xs font-black uppercase tracking-widest text-brand-navy/30 italic">
+                      {isLoggedInFlow ? 'Step 02 / Training Group' : 'Step 03 / Training Group'}
+                    </p>
                   </div>
                 </div>
 
@@ -808,10 +1265,9 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
                         required
                       >
                         <option value="">{lang === 'RU' ? 'ВЫБЕРИТЕ ВРЕМЯ' : 'Select Time Slot'}</option>
-                        <option value="mon_wed_fri_16">{lang === 'RU' ? 'ПН / СР / ПТ — 16:00' : 'Mon / Wed / Fri — 16:00'}</option>
-                        <option value="mon_wed_fri_18">{lang === 'RU' ? 'ПН / СР / ПТ — 18:00' : 'Mon / Wed / Fri — 18:00'}</option>
-                        <option value="tue_thu_sat_16">{lang === 'RU' ? 'ВТ / ЧТ / СБ — 16:00' : 'Tue / Thu / Sat — 16:00'}</option>
-                        <option value="tue_thu_sat_18">{lang === 'RU' ? 'ВТ / ЧТ / СБ — 18:00' : 'Tue / Thu / Sat — 18:00'}</option>
+                        {scheduleOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -848,7 +1304,9 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
                   </div>
                   <div>
                     <h2 className="text-2xl md:text-3xl font-black italic uppercase tracking-tight leading-none mb-1 md:mb-2">{t.regPaymentTitle}</h2>
-                    <p className="text-[10px] md:text-xs font-black uppercase tracking-widest text-brand-navy/30 italic">Step 04 / Plan Finalization</p>
+                    <p className="text-[10px] md:text-xs font-black uppercase tracking-widest text-brand-navy/30 italic">
+                      {isLoggedInFlow ? 'Step 03 / Plan Finalization' : 'Step 04 / Plan Finalization'}
+                    </p>
                   </div>
                 </div>
 
@@ -863,12 +1321,37 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
                   >
                     <div className="flex justify-between items-start mb-3 md:mb-4 pr-8">
                        <h3 className="font-black italic uppercase tracking-tighter text-xl md:text-2xl">{t.regTrialOption}</h3>
-                       <Badge color={formData.payment.type === 'trial' ? 'white' : 'teal'} className="px-3 md:px-4 py-1 md:py-1.5 rounded-xl uppercase italic text-[9px] md:text-xs">FREE</Badge>
+                       <div className="text-right">
+                          <Badge color={formData.payment.type === 'trial' ? 'white' : 'teal'} className="px-3 md:px-4 py-1 md:py-1.5 rounded-xl uppercase italic text-[9px] md:text-xs">FREE</Badge>
+                          <div className={`text-[8px] md:text-[9px] font-bold uppercase tracking-wider mt-1.5 leading-none ${formData.payment.type === 'trial' ? 'text-white/60' : 'text-brand-teal'}`}>0 GEL / {(t as any).perClassLabel}</div>
+                       </div>
                     </div>
                     <p className={`text-xs md:text-sm font-medium leading-relaxed italic ${formData.payment.type === 'trial' ? 'text-white/50' : 'text-brand-navy/40'}`}>
                       {t.regTrialDesc}
                     </p>
                     {formData.payment.type === 'trial' && <div className="absolute top-6 right-6 md:top-8 md:right-8"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-brand-teal" /></div>}
+                  </button>
+
+                  <button
+                    onClick={() => updatePaymentField('type', 'foundation')}
+                    className={`w-full p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-2 text-left transition-all relative group ${
+                      formData.payment.type === 'foundation' 
+                      ? 'bg-brand-navy border-brand-navy text-white shadow-2xl scale-[1.01]' 
+                      : 'bg-white/40 border-brand-navy/5 text-brand-navy hover:border-brand-teal/30 hover:bg-white/60'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-3 md:mb-4 pr-8">
+                       <h3 className="font-black italic uppercase tracking-tighter text-xl md:text-2xl">{(t as any).plan3Name}</h3>
+                       <div className="text-right">
+                          <div className={`font-black text-lg md:text-xl italic leading-none ${formData.payment.type === 'foundation' ? 'text-white' : 'text-brand-sunset'}`}>{pricingValues.foundation} GEL</div>
+                          <div className={`text-[7px] md:text-[8px] uppercase tracking-[0.3em] md:tracking-[0.4em] font-black mt-1 ${formData.payment.type === 'foundation' ? 'text-white/40' : 'text-brand-navy/20'}`}>8 CLASSES / MONTH</div>
+                          <div className={`text-[8px] md:text-[9px] font-bold uppercase tracking-wider mt-1.5 leading-none ${formData.payment.type === 'foundation' ? 'text-white/60' : 'text-brand-sunset'}`}>{pricingValues.foundationPerClass} GEL / {(t as any).perClassLabel}</div>
+                       </div>
+                    </div>
+                    <p className={`text-xs md:text-sm font-medium leading-relaxed italic ${formData.payment.type === 'foundation' ? 'text-white/50' : 'text-brand-navy/40'}`}>
+                      {(t as any).plan3Sub}
+                    </p>
+                    {formData.payment.type === 'foundation' && <div className="absolute top-6 right-6 md:top-8 md:right-8"><CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-brand-sunset" /></div>}
                   </button>
 
                   <button
@@ -882,8 +1365,9 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
                     <div className="flex justify-between items-start mb-3 md:mb-4 pr-8">
                        <h3 className="font-black italic uppercase tracking-tighter text-xl md:text-2xl">{t.regMonthlyOption}</h3>
                        <div className="text-right">
-                          <div className={`font-black text-lg md:text-xl italic leading-none ${formData.payment.type === 'monthly' ? 'text-white' : 'text-brand-teal'}`}>250 GEL</div>
-                          <div className={`text-[7px] md:text-[8px] uppercase tracking-[0.3em] md:tracking-[0.4em] font-black mt-1 ${formData.payment.type === 'monthly' ? 'text-white/40' : 'text-brand-navy/20'}`}>PER MONTH</div>
+                          <div className={`font-black text-lg md:text-xl italic leading-none ${formData.payment.type === 'monthly' ? 'text-white' : 'text-brand-teal'}`}>{pricingValues.monthly} GEL</div>
+                          <div className={`text-[7px] md:text-[8px] uppercase tracking-[0.3em] md:tracking-[0.4em] font-black mt-1 ${formData.payment.type === 'monthly' ? 'text-white/40' : 'text-brand-navy/20'}`}>12 CLASSES / MONTH</div>
+                          <div className={`text-[8px] md:text-[9px] font-bold uppercase tracking-wider mt-1.5 leading-none ${formData.payment.type === 'monthly' ? 'text-white/60' : 'text-brand-teal'}`}>{pricingValues.monthlyPerClass} GEL / {(t as any).perClassLabel}</div>
                        </div>
                     </div>
                     <p className={`text-xs md:text-sm font-medium leading-relaxed italic ${formData.payment.type === 'monthly' ? 'text-white/70' : 'text-brand-navy/40'}`}>
@@ -966,78 +1450,11 @@ export default function Registration({ lang }: { lang: 'EN' | 'GE' | 'RU' }) {
         </AnimatePresence>
 
         {/* Terms Modal */}
-        <AnimatePresence>
-          {isTermsOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 sm:px-6">
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsTermsOpen(false)}
-                className="absolute inset-0 bg-brand-navy/60 backdrop-blur-md"
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative bg-white rounded-[40px] p-8 shadow-3xl border border-white/20 w-full max-w-[600px] max-h-[80vh] flex flex-col"
-              >
-                <div className="mb-8 pr-12">
-                  <h3 className="text-2xl font-black italic uppercase tracking-tighter text-brand-navy leading-tight">
-                    {lang === 'RU' ? 'Публичная оферта и политика' : 'Terms & Privacy'}
-                  </h3>
-                  <button 
-                    onClick={() => setIsTermsOpen(false)}
-                    className="absolute top-8 right-8 w-10 h-10 rounded-full bg-brand-navy/5 flex items-center justify-center text-brand-navy/40 hover:bg-brand-navy/10 transition-all font-sans z-10"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar font-sans">
-                   <div className="space-y-6 text-brand-navy/70 text-sm font-medium leading-relaxed italic">
-                      <p>
-                        {lang === 'RU' 
-                          ? 'Настоящая публичная оферта является официальным предложением АНО "СПОРТ ПАРК ДЖУНО" (далее — "Академия") заключить договор на оказание спортивно-образовательных услуг.'
-                          : 'This public offer is an official proposal of "SPORT PARK JUNO" (hereinafter — the "Academy") to conclude an agreement for the provision of sports and educational services.'}
-                      </p>
-                      <p className="font-black text-brand-navy uppercase tracking-widest text-[10px] mt-8">1. Предмет договора / Subject of Agreement</p>
-                      <p>
-                        {lang === 'RU'
-                          ? 'Академия обязуется организовать и провести тренировочные занятия по футболу для ребенка Заказчика в соответствии с выбранной программой и расписанием.'
-                          : 'The Academy undertakes to organize and conduct football training sessions for the Customers child in accordance with the selected program and schedule.'}
-                      </p>
-                      <p className="font-black text-brand-navy uppercase tracking-widest text-[10px] mt-8">2. Оплата / Payment</p>
-                      <p>
-                        {lang === 'RU'
-                          ? 'Оплата услуг производится в соответствии с выбранным тарифом. Стоимость пробного занятия составляет 0 лари. Ежемесячный абонемент оплачивается в начале каждого периода.'
-                          : 'Payment for services is made in accordance with the selected tariff. The cost of a trial lesson is 0 GEL. The monthly subscription is paid at the beginning of each period.'}
-                      </p>
-                      <p className="font-black text-brand-navy uppercase tracking-widest text-[10px] mt-8">3. Конфиденциальность / Privacy</p>
-                      <p>
-                        {lang === 'RU'
-                          ? 'Мы собираем ваши персональные данные (ФИО, телефон, email) исключительно для обеспечения тренировочного процесса и информирования о новостях Академии. Данные не передаются третьим лицам.'
-                          : 'We collect your personal data (name, phone, email) solely to ensure the training process and inform about Academy news. Data is not transferred to third parties.'}
-                      </p>
-                      {/* Added more dummy text to hit scroll */}
-                      <p className="font-black text-brand-navy uppercase tracking-widest text-[10px] mt-8">4. Ответственность / Liability</p>
-                      <p>
-                        {lang === 'RU'
-                          ? 'Заказчик несет ответственность за состояние здоровья ребенка и отсутствие медицинских противопоказаний.'
-                          : 'The customer is responsible for the health of the child and the absence of medical contraindications.'}
-                      </p>
-                      <p>
-                        {lang === 'RU'
-                          ? 'Академия несет ответственность за безопасность проведения тренировок при соблюдении правил поведения на спортивном объекте.'
-                          : 'The Academy is responsible for the safety of the training sessions, provided that the rules of conduct at the sports facility are observed.'}
-                      </p>
-                      <p className="text-center text-[10px] opacity-30 mt-12 pb-12">End of document / Конец документа</p>
-                   </div>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+        <TermsModal 
+          isOpen={isTermsOpen} 
+          onClose={() => setIsTermsOpen(false)} 
+          lang={lang} 
+        />
       </div>
     </div>
   );

@@ -14,19 +14,206 @@
         "studentLocation": { "type": "string", "description": "Preferred training location" },
         "studentMedicalNotes": { "type": "string", "description": "Optional medical notes for the student" },
         "studentProfileImage": { "type": "string", "description": "Profile image URL or base64 string" },
+        "studentLanguage": { "type": "string", "enum": ["RU", "EN"], "description": "Preferred communication language" },
         "trainingGroup": { "type": "string", "description": "Selected training group (e.g. U8)" },
         "trainingSchedule": { "type": "string", "description": "Selected training schedule" },
-        "paymentType": { "type": "string", "enum": ["trial", "monthly"], "description": "Type of enrollment" },
+        "paymentType": { "type": "string", "enum": ["trial", "foundation", "monthly"], "description": "Type of enrollment" },
         "paymentMethod": { "type": "string", "enum": ["at_field"], "description": "Payment method" },
+        "xp": { "type": "integer", "description": "Total experience points earned by the student" },
+        "totalPaidClasses": { "type": "integer", "description": "Number of paid classes assigned to the student" },
+        "usedPaidClasses": { "type": "integer", "description": "Number of paid classes used/visited by the student" },
+        "status": { "type": "string", "enum": ["pending", "approved", "declined"], "description": "Validation status of the profile" },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of registration" }
       },
       "required": ["parentFullName", "parentPhone", "studentName", "studentAge", "studentGender", "studentLocation", "trainingGroup", "trainingSchedule", "paymentType", "paymentMethod", "createdAt"]
+    },
+    "PublicProfile": {
+      "title": "Public Profile",
+      "description": "Publicly visible athlete profile information",
+      "type": "object",
+      "properties": {
+        "studentName": { "type": "string", "description": "Name of the student" },
+        "studentAge": { "type": "integer", "description": "Age of the student" },
+        "studentLocation": { "type": "string", "description": "Training location" },
+        "studentProfileImage": { "type": "string", "description": "Profile image URL" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
+      },
+      "required": ["studentName", "studentAge", "studentLocation", "createdAt"]
+    },
+    "Master": {
+      "title": "Master",
+      "description": "Coach or staff member profile with platform management rights",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string", "description": "Full name of the master" },
+        "phone": { "type": "string", "description": "Phone number for login" },
+        "specialization": { "type": "string", "description": "Specialization (e.g. Football, Yoga)" },
+        "avatar": { "type": "string", "description": "Profile image URL" },
+        "role": { "type": "string", "enum": ["coach", "admin"], "description": "System role" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
+      },
+      "required": ["fullName", "phone", "role", "createdAt"]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "A scheduled class or academy event",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the class/event" },
+        "description": { "type": "string", "description": "Short description of the agenda" },
+        "date": { "type": "string", "format": "date", "description": "Date of the event" },
+        "startTime": { "type": "string", "description": "Start time (e.g. 10:00)" },
+        "location": { "type": "string", "description": "Selected location" },
+        "masterId": { "type": "string", "description": "ID of the coach creating/managing the event" },
+        "isPublic": { "type": "boolean", "description": "Whether the event is publicly accessible" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["name", "description", "date", "startTime", "location", "masterId", "isPublic", "createdAt"]
+    },
+    "EventTemplate": {
+      "title": "Event Template",
+      "description": "A reusable template for events or training sessions",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the template" },
+        "description": { "type": "string", "description": "Short description of the template" },
+        "startTime": { "type": "string", "description": "Start time (e.g. 10:00)" },
+        "location": { "type": "string", "description": "Selected location" },
+        "masterId": { "type": "string", "description": "ID of the coach creating/managing the template" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["name", "description", "masterId", "createdAt"]
+    },
+    "Invitation": {
+      "title": "Invitation",
+      "description": "An invitation for a student to attend an event",
+      "type": "object",
+      "properties": {
+        "eventId": { "type": "string", "description": "ID of the event" },
+        "studentId": { "type": "string", "description": "ID of the student registration" },
+        "studentName": { "type": "string", "description": "Name of the student" },
+        "studentPhone": { "type": "string", "description": "Phone number of the parent (student account ID)" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "declined"], "description": "Current status of the invitation" },
+        "masterId": { "type": "string", "description": "ID of the coach who sent the invitation" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of invitation" }
+      },
+      "required": ["eventId", "studentId", "studentName", "studentPhone", "status", "masterId", "createdAt"]
+    },
+    "ParameterRecord": {
+      "title": "Parameter Record",
+      "description": "Chronological recording of an athlete parameter by a master",
+      "type": "object",
+      "properties": {
+        "athleteId": { "type": "string", "description": "ID of the student registration" },
+        "parameterKey": { "type": "string", "description": "Key of the parameter (e.g. height, weight)" },
+        "parameterGroup": { "type": "string", "description": "Group of the parameter" },
+        "value": { "type": "number", "description": "Numeric value recorded" },
+        "recordedAt": { "type": "string", "format": "date-time", "description": "Timestamp selected by the recorder (date + time)" },
+        "masterId": { "type": "string", "description": "ID of the master who records the parameter" },
+        "masterName": { "type": "string", "description": "Name of the master who records the parameter" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server creation timestamp" }
+      },
+      "required": ["athleteId", "parameterKey", "parameterGroup", "value", "recordedAt", "masterId", "masterName", "createdAt"]
+    },
+    "Exercise": {
+      "title": "Exercise",
+      "description": "An athletic or coaching drill structured by masters",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the exercise" },
+        "duration": { "type": "integer", "description": "Duration of the exercise in minutes" },
+        "description": { "type": "string", "description": "Step-by-step description" },
+        "ageGroup": { "type": "string", "description": "Relevance to age group (e.g. U8)" },
+        "complexity": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced"], "description": "Level of complexity" },
+        "phase": { "type": "integer", "description": "Assigned training phase (1: Warm Up, 2: Skills & Fitness, 3: Football Mastery, 4: Scrimmage/Cooldown)" },
+        "masterId": { "type": "string", "description": "ID of the master who created it" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["name", "duration", "description", "ageGroup", "complexity", "masterId", "createdAt"]
+    },
+    "Athlete": {
+      "title": "Athlete",
+      "description": "An approved or declined athlete profile linked to a registration",
+      "type": "object",
+      "properties": {
+        "registrationId": { "type": "string", "description": "ID of the linked registration document" },
+        "studentName": { "type": "string", "description": "Name of the student" },
+        "studentAge": { "type": "integer", "description": "Age of the student" },
+        "studentGender": { "type": "string", "enum": ["male", "female"], "description": "Gender of the student" },
+        "studentLocation": { "type": "string", "description": "Preferred training location" },
+        "studentMedicalNotes": { "type": "string", "description": "Optional medical notes for the student" },
+        "studentProfileImage": { "type": "string", "description": "Profile image URL or base64 string" },
+        "studentLanguage": { "type": "string", "enum": ["RU", "EN"], "description": "Preferred communication language" },
+        "trainingGroup": { "type": "string", "description": "Selected training group (e.g. U8)" },
+        "trainingSchedule": { "type": "string", "description": "Selected training schedule" },
+        "xp": { "type": "integer", "description": "Total experience points earned by the student" },
+        "totalPaidClasses": { "type": "integer", "description": "Number of paid classes assigned to the student" },
+        "usedPaidClasses": { "type": "integer", "description": "Number of paid classes used/visited by the student" },
+        "status": { "type": "string", "enum": ["approved", "declined"], "description": "Approval or decline status of the athlete" },
+        "parentFullName": { "type": "string", "description": "Full name of the parent" },
+        "parentPhone": { "type": "string", "description": "Phone number of the parent" },
+        "parentEmail": { "type": "string", "format": "email", "description": "Email address of the parent" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of profile creation" }
+      },
+      "required": ["registrationId", "studentName", "studentAge", "studentGender", "studentLocation", "status", "parentFullName", "parentPhone", "createdAt"]
+    },
+    "PaymentHistory": {
+      "title": "Payment History",
+      "description": "Historical log of athlete training package updates and payments",
+      "type": "object",
+      "properties": {
+        "athleteId": { "type": "string", "description": "ID of the athlete registration" },
+        "newTotal": { "type": "integer", "description": "New balance count of classes" },
+        "previousTotal": { "type": "integer", "description": "Previous balance count of classes" },
+        "type": { "type": "string", "enum": ["purchase", "reset"], "description": "Type of balance update action" },
+        "label": { "type": "string", "description": "A description of the transaction/action" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp of the transaction" },
+        "masterId": { "type": "string", "description": "ID of the authorizing master" },
+        "masterName": { "type": "string", "description": "Name of the authorizing master" }
+      },
+      "required": ["athleteId", "newTotal", "type", "label", "updatedAt"]
     }
   },
   "firestore": {
     "registrations": {
       "schema": "Registration",
       "description": "Collection of all student registrations"
+    },
+    "athletes": {
+      "schema": "Athlete",
+      "description": "Collection of all approved or declined athlete profiles"
+    },
+    "public_profiles": {
+      "schema": "PublicProfile",
+      "description": "Collection of publicly visible athlete profiles for the landing page"
+    },
+    "masters": {
+      "schema": "Master",
+      "description": "Collection of authorized masters and coaches"
+    },
+    "events": {
+      "schema": "Event",
+      "description": "Collection of scheduled classes and academy events"
+    },
+    "event_templates": {
+      "schema": "EventTemplate",
+      "description": "Collection of custom master-designed event templates"
+    },
+    "exercises": {
+      "schema": "Exercise",
+      "description": "Collection of master coach-designed drills and athletic exercises used to construct class agendas"
+    },
+    "invitations": {
+      "schema": "Invitation",
+      "description": "Collection of event invitations for students"
+    },
+    "parameter_records": {
+      "schema": "ParameterRecord",
+      "description": "Historical logs of athlete performance and health metrics"
+    },
+    "payment_history": {
+      "schema": "PaymentHistory",
+      "description": "Historical logs of package purchases and balance resets"
     }
   }
 }

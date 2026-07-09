@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button, Card, Badge } from './UI';
 import { USPS, PROGRAMS, MOCK_STUDENT, LOCATIONS, COACHES } from '../constants';
-import { Trophy, Star, ChevronRight, ChevronDown, Play, Info, CheckCircle2, MapPin, Calendar, Smartphone, Activity, Target, BarChart3, Users, LayoutGrid, Settings, Zap, Brain, Shield, Heart, Command, Clock, Wind, Utensils, ExternalLink, Award, BookOpen, ArrowRight, X } from 'lucide-react';
+import { Trophy, Star, ChevronRight, ChevronDown, Play, Info, CheckCircle2, MapPin, Calendar, Smartphone, Activity, Target, BarChart3, Users, LayoutGrid, Settings, Zap, Brain, Shield, Heart, Command, Clock, Wind, Utensils, ExternalLink, Award, BookOpen, ArrowRight, X, User, Instagram, Facebook, Send } from 'lucide-react';
+import { TermsModal } from './TermsModal';
 import { translations } from '../i18n';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 export function Navbar({ onPortalClick, currentLang, onLangChange }: { 
   onPortalClick: () => void, 
@@ -13,33 +14,68 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
 }) {
   const t = translations[currentLang as keyof typeof translations] || translations.EN;
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
+
+  const isHomePage = location.pathname === '/';
 
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b shadow-none py-4 px-6 md:px-12 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-brand-teal rounded-xl flex items-center justify-center neon-glow-teal rotate-6 shrink-0">
+        <Link to="/" className="flex items-center gap-2 group cursor-pointer">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-brand-teal rounded-xl flex items-center justify-center neon-glow-teal rotate-6 shrink-0 group-hover:rotate-12 transition-transform duration-300">
             <Activity className="text-white w-5 h-5 md:w-6 md:h-6" />
           </div>
-          <span className="hidden md:block font-display font-black text-base sm:text-lg md:text-xl tracking-tighter uppercase italic text-brand-navy whitespace-nowrap">
-            Sport Park <span className="text-brand-teal">Juno</span>
+          <span className="hidden md:block font-display font-black text-base sm:text-lg md:text-xl tracking-tighter uppercase italic text-brand-navy whitespace-nowrap group-hover:text-brand-teal transition-colors">
+            Sport Park <span className="text-brand-teal group-hover:text-brand-navy transition-colors">Juno</span>
           </span>
-        </div>
+        </Link>
         
         <div className="hidden md:flex items-center gap-10 font-bold text-[10px] uppercase tracking-[0.2em] text-brand-navy/50">
-          <a href="#programs" className="hover:text-brand-teal transition-colors">{t.navPrograms}</a>
+          {isHomePage ? (
+            <a href="#programs" className="hover:text-brand-teal transition-colors">{t.navPrograms}</a>
+          ) : (
+            <Link to="/#programs" className="hover:text-brand-teal transition-colors">{t.navPrograms}</Link>
+          )}
           <Link to="/methodology" className="hover:text-brand-teal transition-colors">{t.navMethodology}</Link>
-          <a href="#locations" className="hover:text-brand-teal transition-colors">{t.navLocations}</a>
+          {isHomePage ? (
+            <a href="#locations" className="hover:text-brand-teal transition-colors">{t.navLocations}</a>
+          ) : (
+            <Link to="/#locations" className="hover:text-brand-teal transition-colors">{t.navLocations}</Link>
+          )}
+          {isHomePage ? (
+            <a href="#pricing" className="hover:text-brand-teal transition-colors">{(t as any).navPricing}</a>
+          ) : (
+            <Link to="/#pricing" className="hover:text-brand-teal transition-colors">{(t as any).navPricing}</Link>
+          )}
+          <Link to="/events" className="hover:text-brand-teal transition-colors">{(t as any).navEvents || 'Events'}</Link>
+          {isHomePage ? (
+            <a href="#faq" className="hover:text-brand-teal transition-colors">{(t as any).navFaq || "FAQ"}</a>
+          ) : (
+            <Link to="/#faq" className="hover:text-brand-teal transition-colors">{(t as any).navFaq || "FAQ"}</Link>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Social Links */}
+          <div className="hidden md:flex items-center gap-3 mr-2 bg-black/5 rounded-full p-1.5 border border-black/5">
+            <a href="https://www.instagram.com/sportparksportpark/" target="_blank" rel="noopener noreferrer" className="w-7 h-7 flex items-center justify-center rounded-full text-brand-navy/60 hover:text-brand-teal hover:bg-white transition-all" title="Instagram">
+              <Instagram className="w-3.5 h-3.5" />
+            </a>
+            <a href="https://www.facebook.com/profile.php?id=61586270925239" target="_blank" rel="noopener noreferrer" className="w-7 h-7 flex items-center justify-center rounded-full text-brand-navy/60 hover:text-brand-teal hover:bg-white transition-all" title="Facebook">
+              <Facebook className="w-3.5 h-3.5" />
+            </a>
+            <a href="https://t.me/batumi_football_sportpark" target="_blank" rel="noopener noreferrer" className="w-7 h-7 flex items-center justify-center rounded-full text-brand-navy/60 hover:text-brand-teal hover:bg-white transition-all" title="Telegram">
+              <Send className="w-3.5 h-3.5" />
+            </a>
+          </div>
+
           {/* Language Switcher */}
           <div className="relative">
             {/* Desktop Version */}
             <div className="hidden md:flex items-center gap-1 bg-black/5 rounded-full p-1 border border-black/5 mr-2">
-              {['EN', 'GE', 'RU'].map((l) => (
+              {['EN', 'GE', 'RU', 'TR'].map((l) => (
                 <button
                   key={l}
                   onClick={() => onLangChange(l)}
@@ -82,7 +118,7 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
                   >
                     <div className="text-center mb-6 sm:mb-8">
                       <h3 className="text-brand-navy text-xl sm:text-2xl font-black italic uppercase tracking-tighter">
-                        {currentLang === 'RU' ? 'Выберите язык' : currentLang === 'GE' ? 'აირჩიეთ ენა' : 'Select Language'}
+                        {currentLang === 'RU' ? 'Выберите язык' : currentLang === 'GE' ? 'აირჩიეთ ენა' : currentLang === 'TR' ? 'DİL SEÇİN' : 'Select Language'}
                       </h3>
                       <div className="w-12 h-1 bg-brand-teal/20 mx-auto mt-3 rounded-full" />
                     </div>
@@ -91,7 +127,8 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
                       {[
                         { code: 'EN', label: 'English', native: 'English' },
                         { code: 'GE', label: 'Georgian', native: 'ქართული' },
-                        { code: 'RU', label: 'Russian', native: 'Русский' }
+                        { code: 'RU', label: 'Russian', native: 'Русский' },
+                        { code: 'TR', label: 'Turkish', native: 'Türkçe' }
                       ].map((item) => (
                         <button
                           key={item.code}
@@ -118,7 +155,7 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
                       onClick={() => setIsLangOpen(false)}
                       className="w-full mt-6 sm:mt-8 p-3 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] text-brand-navy/30 hover:text-brand-teal transition-all font-sans"
                     >
-                      {currentLang === 'RU' ? 'ОТМЕНА' : currentLang === 'GE' ? 'გაუქმება' : 'CANCEL'}
+                      {currentLang === 'RU' ? 'ОТМЕНА' : currentLang === 'GE' ? 'გაუქმება' : currentLang === 'TR' ? 'İPTAL' : 'CANCEL'}
                     </button>
                   </motion.div>
                 </div>
@@ -126,8 +163,30 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
             </AnimatePresence>
           </div>
 
-          <Button variant="ghost" className="hidden md:flex" onClick={onPortalClick}>{t.navPortal}</Button>
-          <Button variant="primary" className="text-[10px] md:text-sm px-4 md:px-8 !rounded-full whitespace-nowrap" onClick={() => navigate('/register')}>{t.navJoin}</Button>
+          <motion.button
+            onClick={onPortalClick}
+            className="hidden md:flex items-center gap-2 h-10 md:h-12 px-6 rounded-full text-white font-black uppercase text-[10px] tracking-widest bg-gradient-to-r from-brand-sunset via-brand-blue to-brand-sunset bg-[length:200%_auto] animate-gradient-slow border border-white/15 cursor-pointer shadow-lg"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            animate={{ 
+              boxShadow: [
+                "0 4px 20px rgba(255,140,66,0.4)",
+                "0 4px 20px rgba(4,127,213,0.4)",
+                "0 4px 20px rgba(255,140,66,0.4)"
+              ]
+            }}
+            transition={{ 
+              boxShadow: {
+                repeat: Infinity,
+                duration: 3,
+                ease: "easeInOut"
+              }
+            }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shrink-0" />
+            {t.navPortal}
+          </motion.button>
+          <Button variant="primary" animatePulse className="text-[10px] md:text-sm px-4 md:px-8 h-10 md:h-12 !rounded-full whitespace-nowrap" onClick={() => navigate('/register')}>{t.navJoin}</Button>
           
           {/* Mobile Menu Toggle */}
           <button 
@@ -174,13 +233,67 @@ export function Navbar({ onPortalClick, currentLang, onLangChange }: {
                 ))}
               </div>
               
-              <a href="#programs" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{t.navPrograms}</a>
+              {isHomePage ? (
+                <a href="#programs" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{t.navPrograms}</a>
+              ) : (
+                <Link to="/#programs" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{t.navPrograms}</Link>
+              )}
               <Link to="/methodology" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{t.navMethodology}</Link>
-              <a href="#locations" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{t.navLocations}</a>
+              {isHomePage ? (
+                <a href="#locations" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{t.navLocations}</a>
+              ) : (
+                <Link to="/#locations" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{t.navLocations}</Link>
+              )}
+              {isHomePage ? (
+                <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{(t as any).navPricing}</a>
+              ) : (
+                <Link to="/#pricing" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{(t as any).navPricing}</Link>
+              )}
+              <Link to="/events" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{(t as any).navEvents || 'Events'}</Link>
+              {isHomePage ? (
+                <a href="#faq" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{(t as any).navFaq || 'FAQ'}</a>
+              ) : (
+                <Link to="/#faq" onClick={() => setIsMenuOpen(false)} className="text-3xl font-black italic uppercase tracking-tighter text-brand-navy">{(t as any).navFaq || 'FAQ'}</Link>
+              )}
               
-              <div className="mt-8 space-y-4">
-                <Button variant="ghost" className="w-full text-base h-16 rounded-3xl" onClick={() => { onPortalClick(); setIsMenuOpen(false); }}>{t.navPortal}</Button>
-                <Button variant="primary" className="w-full text-base h-16 rounded-3xl shadow-teal" onClick={() => { navigate('/register'); setIsMenuOpen(false); }}>{t.navJoin}</Button>
+              <div className="mt-8 space-y-4 font-sans">
+                <motion.button
+                  onClick={() => { onPortalClick(); setIsMenuOpen(false); }}
+                  className="w-full text-base h-16 rounded-3xl font-black uppercase tracking-widest text-white bg-gradient-to-r from-brand-sunset via-brand-blue to-brand-sunset bg-[length:200%_auto] animate-gradient-slow border border-white/20 cursor-pointer shadow-lg flex items-center justify-center gap-2.5"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  animate={{ 
+                    boxShadow: [
+                      "0 8px 24px rgba(255,140,66,0.3)",
+                      "0 8px 24px rgba(4,127,213,0.3)",
+                      "0 8px 24px rgba(255,140,66,0.3)"
+                    ]
+                  }}
+                  transition={{ 
+                    boxShadow: {
+                      repeat: Infinity,
+                      duration: 3,
+                      ease: "easeInOut"
+                    }
+                  }}
+                >
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse shrink-0" />
+                  {t.navPortal}
+                </motion.button>
+                <Button variant="primary" animatePulse className="w-full text-base h-16 rounded-3xl shadow-teal" onClick={() => { navigate('/register'); setIsMenuOpen(false); }}>{t.navJoin}</Button>
+              </div>
+
+              {/* Social Links on Mobile */}
+              <div className="flex justify-center gap-4 mt-8">
+                <a href="https://www.instagram.com/sportparksportpark/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-2xl bg-brand-navy/5 text-brand-navy hover:bg-brand-teal hover:text-white transition-all" title="Instagram">
+                  <Instagram className="w-5 h-5" />
+                </a>
+                <a href="https://www.facebook.com/profile.php?id=61586270925239" target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-2xl bg-brand-navy/5 text-brand-navy hover:bg-brand-teal hover:text-white transition-all" title="Facebook">
+                  <Facebook className="w-5 h-5" />
+                </a>
+                <a href="https://t.me/batumi_football_sportpark" target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-2xl bg-brand-navy/5 text-brand-navy hover:bg-brand-teal hover:text-white transition-all" title="Telegram">
+                  <Send className="w-5 h-5" />
+                </a>
               </div>
             </div>
           </motion.div>
@@ -244,6 +357,7 @@ export function Hero({ lang = 'EN' }: { lang?: string }) {
             <div className="flex flex-col sm:flex-row items-center justify-center sm:items-start sm:justify-start gap-4 md:gap-8 pr-0 md:pr-4">
               <Button 
                 variant="primary" 
+                animatePulse
                 className="w-full sm:w-auto h-16 md:h-20 px-12 md:px-20 tracking-[0.2em] italic uppercase bg-gradient-to-r from-brand-teal to-brand-sunset hover:from-brand-sunset hover:to-brand-teal text-white border-none shadow-[0_20px_50px_rgba(244,114,182,0.3)] hover:scale-105 transition-all duration-500 font-black text-base md:text-lg" 
                 onClick={() => navigate('/register')}
               >
@@ -278,36 +392,36 @@ export function HolisticDevelopment({ lang = 'EN' }: { lang?: string }) {
       img: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=400"
     },
     { 
-      title: lang === 'RU' ? 'Общая физическая выносливость' : lang === 'GE' ? 'ფიზიკური გამძლეობა' : 'General Physical Endurance', 
-      desc: lang === 'RU' ? 'Развитие через плавание и бег (дыхалка), борьбу и кроссфит (сила), йогу и гимнастику (гибкость).' : lang === 'GE' ? 'ძალა, მოქნილობა და გამძლეობა სხვადასხვა დისციპლინით.' : 'Development through swimming/running (breathing), wrestling/crossfit (strength), and yoga/gymnastics (flexibility).',
+      title: lang === 'RU' ? 'Общая физическая выносливость' : lang === 'GE' ? 'ფიზიკური გამძლეობა' : lang === 'TR' ? 'Genel Fiziksel Dayanıklılık' : 'General Physical Endurance', 
+      desc: lang === 'RU' ? 'Развитие через плавание и бег (дыхалка), борьбу и кроссфит (сила), йогу и гимнастику (гибкость).' : lang === 'GE' ? 'ძალა, მოქნილობა და გამძლეობა სხვადასხვა დისციპლინით.' : lang === 'TR' ? 'Yüzme/koşu (solunum), güreş/crossfit (kuvvet) ve yoga/jimnastik (esneklik) yoluyla gelişim.' : 'Development through swimming/running (breathing), wrestling/crossfit (strength), and yoga/gymnastics (flexibility).',
       icon: Wind,
       color: 'blue',
       img: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&q=80&w=400"
     },
     { 
-      title: lang === 'RU' ? 'Тактика и стратегия' : lang === 'GE' ? 'ტაქტიკური უნარები' : 'Tactical Intelligence', 
-      desc: lang === 'RU' ? 'Навыки командной игры, стратегическое мышление и быстрое принятие решений на поле.' : lang === 'GE' ? 'სტრატეგიული აზროვნება და გუნდური თამაში.' : 'Strategic thinking, team cooperation, and rapid on-field decision making.',
+      title: lang === 'RU' ? 'Тактика и стратегия' : lang === 'GE' ? 'ტაქტიკური უნარები' : lang === 'TR' ? 'Taktiksel Zeka' : 'Tactical Intelligence', 
+      desc: lang === 'RU' ? 'Навыки командной игры, стратегическое мышление и быстрое принятие решений на поле.' : lang === 'GE' ? 'სტრატეგიული აზროვნება და გუნდური თამაში.' : lang === 'TR' ? 'Stratejik düşünme, takım koordinasyonu ve sahada hızlı karar verme yetenekleri.' : 'Strategic thinking, team cooperation, and rapid on-field decision making.',
       icon: LayoutGrid,
       color: 'teal',
       img: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&q=80&w=400"
     },
     { 
-      title: lang === 'RU' ? 'Эмоциональный иммунитет' : lang === 'GE' ? 'ემოციური იმუნიტეტი' : 'Emotional Immunity', 
-      desc: lang === 'RU' ? 'Стрессоустойчивость и ментальная закалка. Умение сохранять фокус и спокойствие в критические моменты.' : lang === 'GE' ? 'სტრესმედეგობა და მენტალური სიმტკიცე.' : 'Stress resilience and mental toughness. Maintaining focus during critical match moments.',
+      title: lang === 'RU' ? 'Эмоциональный иммунитет' : lang === 'GE' ? 'ემოციური იმუნიტეტი' : lang === 'TR' ? 'Duygusal Bağışıklık' : 'Emotional Immunity', 
+      desc: lang === 'RU' ? 'Стрессоустойчивость и ментальная закалка. Умение сохранять фокус и спокойствие в критические моменты.' : lang === 'GE' ? 'სტრესმედეგობა და მენტალური სიმტკიცე.' : lang === 'TR' ? 'Stresle başa çıkma ve zihinsel dayanıklılık. Kritik anlarda odaklanmayı sürdürme.' : 'Stress resilience and mental toughness. Maintaining focus during critical match moments.',
       icon: Shield,
       color: 'sunset',
       img: "https://images.unsplash.com/photo-1552667466-07770ae110d0?auto=format&fit=crop&q=80&w=400"
     },
     { 
-      title: lang === 'RU' ? 'Практическая физиология' : lang === 'GE' ? 'პრაქტიკული ფიზიოლოგია' : 'Practical Physiology', 
-      desc: lang === 'RU' ? 'Знания о питании, медитации и восстановлении для самостоятельного управления своим здоровьем.' : lang === 'GE' ? 'კვება, მედიტაცია და აღდგენა.' : 'Knowledge of nutrition, meditation, and recovery for longevity in professional sports.',
+      title: lang === 'RU' ? 'Практическая физиология' : lang === 'GE' ? 'პრაქტიკული ფიზიოლოგია' : lang === 'TR' ? 'Pratik Fizyoloji' : 'Practical Physiology', 
+      desc: lang === 'RU' ? 'Знания о питании, медитации и восстановлении для самостоятельного управления своим здоровьем.' : lang === 'GE' ? 'კვება, მედიტაცია და აღდგენა.' : lang === 'TR' ? 'Beslenme, meditasyon ve yenilenme hakkında bağımsız sağlık yönetimi bilgileri.' : 'Knowledge of nutrition, meditation, and recovery for longevity in professional sports.',
       icon: Activity,
       color: 'teal',
       img: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=400"
     },
     { 
-      title: lang === 'RU' ? 'Эффективные привычки' : lang === 'GE' ? 'ეფექტური ჩვევები' : 'Effective Habits', 
-      desc: lang === 'RU' ? 'Управление временем, энергией, планирование и целеполагание как основа успеха.' : lang === 'GE' ? 'დროის მენეჯმენტი და დაგეგმვა.' : 'Time management, planning, and goal setting as a foundation for life success.',
+      title: lang === 'RU' ? 'Эффективные привычки' : lang === 'GE' ? 'ეფექტური ჩვევები' : lang === 'TR' ? 'Etkili Alışkanlıklar' : 'Effective Habits', 
+      desc: lang === 'RU' ? 'Управление временем, энергией, планирование и целеполагание как основа успеха.' : lang === 'GE' ? 'დროის მენეჯმენტი და დაგეგმვა.' : lang === 'TR' ? 'Zaman yönetimi, planlama ve başarı temeli olarak hedef belirleme.' : 'Time management, planning, and goal setting as a foundation for life success.',
       icon: Clock,
       color: 'blue',
       img: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&q=80&w=400"
@@ -322,8 +436,8 @@ export function HolisticDevelopment({ lang = 'EN' }: { lang?: string }) {
         <div className="flex flex-col lg:flex-row items-end justify-between mb-24 gap-8">
           <div className="max-w-3xl">
             <Badge color="teal">{t.holisticBadge}</Badge>
-            <h2 className="text-5xl md:text-8xl font-black italic uppercase tracking-tighter mt-10 mb-8 text-brand-navy leading-[0.9]">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-navy to-brand-teal">{t.holisticTitle_1}</span> <br /> 
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black italic uppercase tracking-tighter mt-10 mb-8 text-brand-navy leading-[0.9]">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-navy to-brand-teal">{t.holisticTitle_1}</span>{' '}
               <span className="text-brand-teal drop-shadow-sm">{t.holisticTitle_2}</span>
             </h2>
             <p className="text-brand-navy/60 text-xl font-medium leading-relaxed max-w-2xl">
@@ -388,10 +502,10 @@ export function HolisticDevelopment({ lang = 'EN' }: { lang?: string }) {
            >
              <div className="flex flex-col text-left">
                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 group-hover:text-white/60 transition-colors">
-                  {lang === 'RU' ? 'ПОДРОБНЕЕ О ПРОГРАММЕ' : 'PROGRAM DETAILS'}
+                  {lang === 'RU' ? 'ПОДРОБНЕЕ О ПРОГРАММЕ' : lang === 'TR' ? 'PROGRAM DETAYLARI' : 'PROGRAM DETAILS'}
                </span>
                <span className="text-xl font-black italic uppercase tracking-tight">
-                  {lang === 'RU' ? 'ПЕРЕЙТИ К МЕТОДОЛОГИИ' : 'GO TO METHODOLOGY'}
+                  {lang === 'RU' ? 'ПЕРЕЙТИ К МЕТОДОЛОГИИ' : lang === 'TR' ? 'METODOLOJİYE GİT' : 'GO TO METHODOLOGY'}
                </span>
              </div>
              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-brand-teal transition-all">
@@ -412,32 +526,36 @@ export function HolisticDevelopment({ lang = 'EN' }: { lang?: string }) {
             </div>
             <div className="flex-1 text-center md:text-left">
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-teal mb-6 block">
-                {lang === 'RU' ? 'НАУЧНОЕ ОБОСНОВАНИЕ' : 'Scientific Reference'}
+                {lang === 'RU' ? 'НАУЧНОЕ ОБОСНОВАНИЕ' : lang === 'TR' ? 'BİLİMSEL REFERANS' : 'Scientific Reference'}
               </span>
               <h4 className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter text-brand-navy mb-6 leading-tight">
                 {lang === 'RU' 
                   ? 'Роль холистического метода в спортивной подготовке молодых атлетов' 
+                  : lang === 'TR'
+                  ? 'Genç Sporcular İçin Bütünsel Eğitimin Rolü'
                   : 'The Role of Holistic Training for Young Athletes'}
               </h4>
               <p className="text-lg text-brand-navy/60 leading-relaxed font-medium mb-10">
                 {lang === 'RU' 
                   ? "Научное обоснование того, как мультидисциплинарные блоки влияют на долгосрочное развитие." 
+                  : lang === 'TR'
+                  ? "Çok disiplinli blokların uzun vadeli üst düzey gelişimi nasıl etkilediğine dair kanıtlar."
                   : "Evidence on how multi-disciplinary blocks impact long-term elite development."}
               </p>
 
               <div className="mb-12 text-left">
                 <h5 className="text-xs font-black italic uppercase text-brand-teal mb-6 tracking-widest">
-                  {lang === 'RU' ? 'Преимущества холистического метода:' : 'The Championship Advantage:'}
+                  {lang === 'RU' ? 'Преимущества холистического метода:' : lang === 'TR' ? 'Şampiyonluk Avantajı:' : 'The Championship Advantage:'}
                 </h5>
                 <ul className="grid sm:grid-cols-2 gap-8">
                   {[
                     { 
-                      title: lang === 'RU' ? 'Снижение травматизма' : 'Reduced Risk', 
-                      desc: lang === 'RU' ? 'Вариативность нагрузок предотвращает физический износ.' : 'Diversity reduces mechanical wear.' 
+                      title: lang === 'RU' ? 'Снижение травматизма' : lang === 'TR' ? 'Azaltılmış Sakatlık Riski' : 'Reduced Risk', 
+                      desc: lang === 'RU' ? 'Вариативность нагрузок предотвращает физический износ.' : lang === 'TR' ? 'Yük çeşitliliği fiziksel yıpranmayı önler.' : 'Diversity reduces mechanical wear.' 
                     },
                     { 
-                      title: lang === 'RU' ? 'Когнитивная гибкость' : 'Elite IQ', 
-                      desc: lang === 'RU' ? 'Развитие адаптивности к нестандартным вызовам.' : 'Adaptability to any challenge.' 
+                      title: lang === 'RU' ? 'Когнитивная гибкость' : lang === 'TR' ? 'Bilişsel Esneklik' : 'Elite IQ', 
+                      desc: lang === 'RU' ? 'Развитие адаптивности к нестандартным вызовам.' : lang === 'TR' ? 'Standart dışı zorluklara uyum sağlama yeteneğinin geliştirilmesi.' : 'Adaptability to any challenge.' 
                     },
                   ].map((point, pIdx) => (
                     <li key={pIdx} className="flex gap-4">
@@ -457,7 +575,7 @@ export function HolisticDevelopment({ lang = 'EN' }: { lang?: string }) {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-4 text-xs font-black uppercase italic tracking-widest text-brand-teal hover:text-brand-sunset transition-all group/link relative"
               >
-                <span className="relative z-10">{lang === 'RU' ? 'Читать исследование' : 'Read Full Research'}</span>
+                <span className="relative z-10">{lang === 'RU' ? 'Читать исследование' : lang === 'TR' ? 'Araştırmayı Oku' : 'Read Full Research'}</span>
                 <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform relative z-10" />
                 <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-sunset transition-all duration-300 group-hover/link:w-full" />
               </a>
@@ -507,9 +625,14 @@ export function USPSection({ lang = 'EN' }: { lang?: string }) {
        if (usp.id === 'gamified') { title = "Геймификация обучения"; desc = "Игровые механики и вознаграждения для максимальной вовлеченности."; }
     } else if (lang === 'GE') {
        if (usp.id === 'holistic') { title = "ჰოლისტიკური მიდგომა"; desc = "ფიზიკური და მენტალური განვითარება."; }
-       if (usp.id === 'multi') { title = "მულტიდისციპლინური სისტემა"; desc = "სხვადასხვა სპორტული დისციპლინების ინტეგრაცია ათლეტის განვითარებისთვის."; }
+       if (usp.id === 'multi') { title = "მულტიდისციპლინური სისტემა"; desc = "სხვადსხვა სპორტული დისციპლინების ინტეგრაცია ათლეტის განვითარებისთვის."; }
        if (usp.id === 'digital') { title = "ციფრული პლატფორმა"; desc = "Juno Digital პროგრესის კონტროლისთვის."; }
        if (usp.id === 'gamified') { title = "გეიმიფიკაცია"; desc = "თამაშის ელემენტები სწავლის პროცესში."; }
+    } else if (lang === 'TR') {
+       if (usp.id === 'holistic') { title = "Bütünsel Yaklaşım"; desc = "Fiziksel güç, zihinsel dayanıklılık ve liderlik becerilerinin gelişimi."; }
+       if (usp.id === 'multi') { title = "Çok Disiplinli Sistem"; desc = "Farklı spor disiplinlerinin entegrasyonu yoluyla sporcunun uyumlu gelişimi."; }
+       if (usp.id === 'digital') { title = "Dijital Platform"; desc = "Sporcu gelişimini takip etmek için tescilli Juno Digital sistemi."; }
+       if (usp.id === 'gamified') { title = "Eğitimin Oyunlaştırılması"; desc = "Maksimum katılım için oyun mekaniği ve ödüllendirme sistemleri."; }
     }
     return { ...usp, title, description: desc };
   });
@@ -518,8 +641,8 @@ export function USPSection({ lang = 'EN' }: { lang?: string }) {
     <section id="programs" className="py-24 container mx-auto px-6 font-sans overflow-hidden">
       <div className="text-center mb-20">
         <Badge color="teal">{t.uspBadge}</Badge>
-        <h2 className="text-4xl md:text-6xl font-black mb-6 uppercase italic tracking-tighter mt-4 leading-none">
-          {t.uspTitle_1} <br /> <span className="text-brand-teal">{t.uspTitle_2}</span>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-6 uppercase italic tracking-tighter mt-4 leading-none">
+          {t.uspTitle_1} <span className="text-brand-teal">{t.uspTitle_2}</span>
         </h2>
         <p className="text-brand-navy/50 max-w-xl mx-auto font-medium px-4">{t.uspDesc}</p>
       </div>
@@ -549,62 +672,62 @@ export function LocationsSection({ lang = 'EN' }: { lang?: string }) {
   const navigate = useNavigate();
 
   return (
-    <section id="locations" className="py-32 bg-brand-stone relative overflow-hidden font-sans">
+    <section id="locations" className="py-16 sm:py-32 bg-brand-stone relative overflow-hidden font-sans">
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-[800px] h-[800px] bg-brand-teal/5 blur-[150px] rounded-full" />
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 sm:mb-24 gap-6 sm:gap-8">
           <div className="max-w-2xl">
             <Badge color="teal">Локации</Badge>
-            <h2 className="text-5xl md:text-9xl font-black italic uppercase tracking-tighter mt-10 mb-8 text-brand-navy leading-none">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black italic uppercase tracking-tighter mt-4 sm:mt-10 mb-4 sm:mb-8 text-brand-navy leading-none">
               {t.centersTitle}
             </h2>
-            <p className="text-xl text-brand-navy/50 font-medium italic">
-              {lang === 'RU' ? 'Международная сеть высокотехнологичных центров подготовки.' : 'Elite international high-performance centers.'}
+            <p className="text-lg sm:text-xl text-brand-navy/50 font-medium italic">
+              {lang === 'RU' ? 'Заниматься можно близко к дому' : 'You can train close to home'}
             </p>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {LOCATIONS.map((loc: any) => (
             <motion.div
               layout
               key={loc.id}
               onClick={() => setSelectedLoc(loc.id)}
-              className={`p-10 rounded-[64px] border transition-all duration-700 cursor-pointer relative overflow-hidden flex flex-col justify-between h-[360px] group ${
+              className={`p-5 sm:p-7 rounded-[24px] sm:rounded-[36px] border transition-all duration-700 cursor-pointer relative overflow-hidden flex flex-col justify-between min-h-[180px] sm:min-h-[230px] h-auto group ${
                 selectedLoc === loc.id 
                   ? 'bg-brand-navy text-white border-brand-navy shadow-3xl scale-[1.01] z-10' 
                   : 'bg-white text-brand-navy border-brand-navy/5 hover:border-brand-teal/20 hover:bg-brand-cream/30 shadow-sm'
               }`}
             >
-              <div className="flex items-start justify-between relative z-10">
-                <div className={`w-20 h-20 rounded-[32px] flex items-center justify-center transition-all duration-700 ${
+              <div className="flex items-start justify-between relative z-10 mb-4 sm:mb-6">
+                <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-[14px] sm:rounded-[24px] flex items-center justify-center transition-all duration-700 ${
                   selectedLoc === loc.id ? 'bg-brand-teal text-white shadow-xl' : 'bg-brand-teal/10 text-brand-teal group-hover:bg-brand-teal group-hover:text-white'
                 }`}>
-                  <MapPin className="w-10 h-10" />
+                  <MapPin className="w-5 h-5 sm:w-8 sm:h-8" />
                 </div>
                 {selectedLoc === loc.id && (
                   <motion.div 
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="bg-brand-sunset text-white px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"
+                    className="bg-brand-sunset text-white px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg sm:rounded-xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5"
                   >
-                    <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                    <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
                     {t.locActiveStatus}
                   </motion.div>
                 )}
               </div>
 
-              <div className="relative z-10">
-                <h3 className="text-4xl font-black italic uppercase tracking-tighter mb-4 leading-none">
-                  {lang === 'RU' ? (loc as any).nameRU : lang === 'GE' ? (loc as any).nameGE : loc.name}
+              <div className="relative z-10 mt-auto">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-black italic uppercase tracking-tighter mb-1.5 sm:mb-2.5 leading-tight">
+                  {lang === 'RU' ? (loc as any).nameRU : lang === 'GE' ? (loc as any).nameGE : lang === 'TR' ? (loc as any).nameTR : loc.name}
                 </h3>
-                <p className={`text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-8 max-w-[85%] ${
-                  selectedLoc === loc.id ? 'text-white/60' : 'text-brand-navy/30'
+                <p className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider leading-relaxed mb-2 sm:mb-3 max-w-full ${
+                  selectedLoc === loc.id ? 'text-white/60' : 'text-brand-navy/55'
                 }`}>
-                  {lang === 'RU' ? (loc as any).addressRU : lang === 'GE' ? (loc as any).addressGE : loc.address}
+                  {lang === 'RU' ? (loc as any).addressRU : lang === 'GE' ? (loc as any).addressGE : lang === 'TR' ? (loc as any).addressTR : loc.address}
                 </p>
                 <div className={`w-full h-1 rounded-full transition-all duration-1000 origin-left ${
                   selectedLoc === loc.id ? 'bg-brand-teal scale-x-100' : 'bg-brand-teal/10 scale-x-0 group-hover:scale-x-10'
@@ -635,8 +758,8 @@ export function DigitalShowcase({ lang = 'EN' }: { lang?: string }) {
         <div className="flex flex-col lg:flex-row items-center gap-24 font-sans">
           <div className="lg:w-1/2 relative z-10">
             <Badge color="teal">{t.digitalBadge}</Badge>
-            <h2 className="text-4xl md:text-7xl font-black italic uppercase tracking-tighter mt-6 mb-8 text-brand-navy leading-none">
-              {t.digitalTitle_1} <br /> <span className="text-brand-teal">{t.digitalTitle_2}</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black italic uppercase tracking-tighter mt-6 mb-8 text-brand-navy leading-none">
+              {t.digitalTitle_1} <span className="text-brand-teal">{t.digitalTitle_2}</span>
             </h2>
             <p className="text-brand-navy/60 mb-12 leading-loose max-w-xl font-medium">
               {t.digitalDesc}
@@ -654,8 +777,8 @@ export function DigitalShowcase({ lang = 'EN' }: { lang?: string }) {
             <div className="space-y-8">
               {[
                 { title: lang === 'RU' ? 'Лестница прогресса' : 'Progression Ladder', desc: lang === 'RU' ? 'Визуальный трекинг XP и уровней.' : 'Visual XP and level tracking system.', icon: Activity },
-                { title: lang === 'RU' ? 'Ежедневные отчеты' : 'Daily Insights', desc: lang === 'RU' ? 'Отзывы тренера после каждой тренировки.' : 'Coach feedback delivered after every training.', icon: Target },
-                { title: lang === 'RU' ? 'Глобальные вызовы' : 'Global Challenges', desc: lang === 'RU' ? 'Участвуйте в еженедельных испытаниях.' : 'Compete in weekly skill missions.', icon: Trophy }
+                { title: lang === 'RU' ? 'Ежемесячные отчеты' : 'Monthly Reports', desc: lang === 'RU' ? 'Детальный отчет об успехах ребенка каждый месяц.' : 'Detailed progress and performance reports monthly.', icon: Target },
+                { title: lang === 'RU' ? 'Индивидуальные и командные челленджи' : 'Individual & Team Challenges', desc: lang === 'RU' ? 'Участвуйте в личных и коллективных вызовах.' : 'Participate in personal and group missions.', icon: Trophy }
               ].map((item, idx) => (
                 <div key={idx} className="flex gap-6 group cursor-pointer">
                   <div className="w-12 h-12 rounded-2xl border border-brand-teal/10 flex items-center justify-center text-brand-teal group-hover:bg-brand-teal group-hover:text-white transition-all duration-300">
@@ -782,7 +905,7 @@ export function GamificationSection({ lang = 'EN' }: { lang?: string }) {
 
   const missions = [
     { type: (t as any).missionIndiv, title: (t as any).missionExample1, icon: Target, img: "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80&w=400" },
-    { type: (t as any).missionTeam, title: (t as any).missionExample2, icon: Users, img: "https://images.unsplash.com/photo-1526232759583-26f173b45e99?auto=format&fit=crop&q=80&w=400" },
+    { type: (t as any).missionTeam, title: (t as any).missionExample2, icon: Users, img: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=400" },
   ];
 
   return (
@@ -795,8 +918,8 @@ export function GamificationSection({ lang = 'EN' }: { lang?: string }) {
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center mb-24 max-w-4xl mx-auto">
           <Badge color="teal">{(t as any).gamifyBadge}</Badge>
-          <h2 className="text-6xl md:text-9xl font-black italic uppercase tracking-tighter mt-12 mb-10 text-brand-navy leading-none">
-            {(t as any).gamifyTitle_1} <br /> <span className="text-brand-teal">{(t as any).gamifyTitle_2}</span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black italic uppercase tracking-tighter mt-12 mb-10 text-brand-navy leading-none">
+            {(t as any).gamifyTitle_1} <span className="text-brand-teal">{(t as any).gamifyTitle_2}</span>
           </h2>
           <p className="text-brand-navy/40 text-xl font-medium max-w-2xl mx-auto italic leading-relaxed">
             {(t as any).gamifyDesc}
@@ -830,41 +953,50 @@ export function GamificationSection({ lang = 'EN' }: { lang?: string }) {
           ))}
         </div>
 
-        <div className="max-w-6xl mx-auto glass p-12 md:p-16 rounded-[72px] border-white shadow-3xl relative overflow-hidden">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-16">
+        <div className="max-w-6xl mx-auto glass p-6 sm:p-12 md:p-16 rounded-[32px] sm:rounded-[48px] md:rounded-[72px] border-white shadow-3xl relative overflow-hidden">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-16">
             <div className="flex-1 w-full relative z-10">
-              <h3 className="text-4xl font-black italic uppercase text-brand-navy mb-12 tracking-tighter leading-none">
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-black italic uppercase text-brand-navy mb-6 sm:mb-8 md:mb-12 tracking-tighter leading-none text-center md:text-left">
                 {lang === 'RU' ? 'Текущие квесты' : 'Active Skill Quests'}
               </h3>
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {missions.map((mission, idx) => (
-                  <div key={idx} className="flex items-center gap-6 p-8 rounded-[40px] bg-white/40 border border-brand-navy/5 hover:bg-white hover:border-brand-teal/20 transition-all cursor-pointer group">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden relative grayscale group-hover:grayscale-0 transition-all duration-700">
+                  <div key={idx} className="flex items-center gap-4 sm:gap-6 p-4 sm:p-8 rounded-[24px] sm:rounded-[40px] bg-white/40 border border-brand-navy/5 hover:bg-white hover:border-brand-teal/20 transition-all cursor-pointer group">
+                    <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl overflow-hidden relative grayscale group-hover:grayscale-0 transition-all duration-700 shrink-0">
                       <img src={mission.img} className="w-full h-full object-cover" alt="" />
                       <div className="absolute inset-0 bg-brand-teal/20 flex items-center justify-center">
-                        <mission.icon className="w-8 h-8 text-white shadow-lg" />
+                        <mission.icon className="w-5 h-5 sm:w-8 sm:h-8 text-white shadow-lg" />
                       </div>
                     </div>
-                    <div>
-                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-teal mb-2 block">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.4em] text-brand-teal mb-1 sm:mb-2 block">
                         {mission.type}
                       </span>
-                      <p className="text-xl font-black italic uppercase tracking-tight text-brand-navy leading-none">{mission.title}</p>
+                      <p className="text-sm sm:text-xl font-black italic uppercase tracking-tight text-brand-navy leading-tight">{mission.title}</p>
+                      {mission.type === (t as any).missionTeam && (
+                        <div className="mt-3 overflow-hidden rounded-2xl h-16 sm:h-28 max-w-md border border-brand-navy/10 shadow-md transition-all duration-500 group-hover:scale-[1.02] group-hover:shadow-lg">
+                          <img 
+                            src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&q=80&w=800" 
+                            className="w-full h-full object-cover" 
+                            alt="Team Training Quest" 
+                          />
+                        </div>
+                      )}
                     </div>
-                    <div className="ml-auto text-brand-sunset font-black italic text-2xl tracking-tighter shadow-sunset">+500 XP</div>
+                    <div className="text-brand-sunset font-black italic text-base sm:text-2xl tracking-tighter shadow-sunset shrink-0 ml-2 sm:ml-auto">+500 XP</div>
                   </div>
                 ))}
               </div>
             </div>
             
-            <div className="w-full md:w-[320px] aspect-square relative flex items-center justify-center">
-              <div className="absolute inset-0 bg-brand-teal/20 blur-[100px] rounded-full animate-pulse" />
+            <div className="w-48 h-48 sm:w-64 sm:h-64 md:w-[320px] md:h-[320px] shrink-0 relative flex items-center justify-center mx-auto md:mx-0">
+              <div className="absolute inset-0 bg-brand-teal/20 blur-[60px] md:blur-[100px] rounded-full animate-pulse" />
               <div className="relative w-full h-full bg-white rounded-full border-4 border-white/10 flex items-center justify-center shadow-3xl group overflow-hidden">
                  {/* Inner rotating element */}
                  <div className="absolute inset-0 bg-brand-teal opacity-5 animate-spin-slow" />
                  <div className="text-center relative z-10">
-                    <span className="text-6xl font-black italic text-brand-navy tracking-tighter leading-none block mb-2">2.5X</span>
-                    <p className="text-[10px] uppercase font-black tracking-[0.4em] text-brand-navy/30 leading-none">BOOST</p>
+                    <span className="text-3xl sm:text-5xl md:text-6xl font-black italic text-brand-navy tracking-tighter leading-none block mb-1 sm:mb-2">2.5X</span>
+                    <p className="text-[8px] sm:text-[9px] md:text-[10px] uppercase font-black tracking-[0.3em] sm:tracking-[0.4em] text-brand-navy/30 leading-none">BOOST</p>
                  </div>
               </div>
             </div>
@@ -883,7 +1015,7 @@ export function MastersSection({ lang = 'EN' }: { lang?: string }) {
       <div className="container mx-auto px-6">
         <div className="text-center mb-20 max-w-3xl mx-auto">
           <Badge color="teal">{(t as any).mastersBadge}</Badge>
-          <h2 className="text-4xl md:text-7xl font-black italic uppercase tracking-tighter mt-6 mb-8 text-brand-navy">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black italic uppercase tracking-tighter mt-6 mb-8 text-brand-navy leading-none">
             {(t as any).mastersTitle}
           </h2>
           <p className="text-brand-navy/60 leading-relaxed font-medium text-lg">
@@ -977,26 +1109,26 @@ export function MastersSection({ lang = 'EN' }: { lang?: string }) {
           ))}
         </div>
 
-        <div className="mt-20 text-center">
-          <Link to="/methodology">
+        <div className="mt-20 text-center px-4 sm:px-0">
+          <Link to="/methodology" className="block sm:inline-block w-full sm:w-auto">
             <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center gap-8 glass px-12 py-10 rounded-[48px] border-white/40 cursor-pointer group hover:bg-brand-navy transition-all duration-700 shadow-3xl"
+              className="flex flex-col sm:inline-flex sm:flex-row items-center gap-4 sm:gap-8 glass p-6 sm:px-12 sm:py-10 rounded-[28px] sm:rounded-[48px] border-white/40 cursor-pointer group hover:bg-brand-navy transition-all duration-700 shadow-3xl w-full sm:w-auto"
             >
-              <div className="w-20 h-20 rounded-[32px] bg-brand-teal/10 flex items-center justify-center text-brand-teal group-hover:bg-brand-teal group-hover:text-white transition-all duration-500 shadow-xl">
-                <Settings className="w-10 h-10" />
+              <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-[18px] sm:rounded-[32px] bg-brand-teal/10 flex items-center justify-center text-brand-teal group-hover:bg-brand-teal group-hover:text-white transition-all duration-500 shadow-xl shrink-0">
+                <Settings className="w-6 h-6 sm:w-10 sm:h-10" />
               </div>
-              <div className="text-left font-sans">
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-teal group-hover:text-brand-teal/60 mb-2">
+              <div className="text-center sm:text-left font-sans min-w-0 flex-1">
+                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.4em] text-brand-teal group-hover:text-brand-teal/60 mb-1 sm:mb-2">
                   {(t as any).methBadge}
                 </p>
-                <p className="text-2xl md:text-3xl font-black italic uppercase text-brand-navy group-hover:text-white tracking-tighter leading-none">
+                <p className="text-lg sm:text-2xl md:text-3xl font-black italic uppercase text-brand-navy group-hover:text-white tracking-tighter leading-none break-words">
                   {lang === 'RU' ? 'НАУЧНАЯ МЕТОДИКА JUNO' : 'EXPLORE JUNO METHODOLOGY'}
                 </p>
               </div>
-              <div className="w-14 h-14 rounded-full bg-brand-navy flex items-center justify-center text-white group-hover:bg-white group-hover:text-brand-navy transition-all duration-700 shadow-xl">
-                <ArrowRight className="w-7 h-7" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-brand-navy flex items-center justify-center text-white group-hover:bg-white group-hover:text-brand-navy transition-all duration-700 shadow-xl shrink-0">
+                <ArrowRight className="w-5 h-5 sm:w-7 sm:h-7" />
               </div>
             </motion.div>
           </Link>
@@ -1007,81 +1139,222 @@ export function MastersSection({ lang = 'EN' }: { lang?: string }) {
 }
 
 
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth?.currentUser?.uid || null,
+      email: auth?.currentUser?.email || null,
+      emailVerified: auth?.currentUser?.emailVerified || null,
+      isAnonymous: auth?.currentUser?.isAnonymous || null,
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  // We don't necessarily want to crash the whole landing page, but we want the system to see the error
+}
+
+import { collection, query, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
+import { db, auth } from '../lib/firebase';
+
 export function NewProfilePreview({ lang = 'EN' }: { lang?: string }) {
-  const [athlete, setAthlete] = useState<any>(null);
+  const [athletes, setAthletes] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   const t = translations[lang as keyof typeof translations] || translations.EN;
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const stored = localStorage.getItem('lastRegisteredAthlete');
-    if (stored) {
-      setAthlete(JSON.parse(stored));
-    }
+    const fetchLatestAthletes = async () => {
+      try {
+        const q = query(
+          collection(db, 'public_profiles'),
+          orderBy('createdAt', 'desc'),
+          limit(7)
+        );
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setAthletes(data);
+      } catch (error) {
+        console.error("Error fetching latest athletes:", error);
+        handleFirestoreError(error, OperationType.LIST, 'public_profiles');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLatestAthletes();
   }, []);
 
-  if (!athlete) return null;
+  // Auto-rotation logic
+  useEffect(() => {
+    if (athletes.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % athletes.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [athletes.length]);
+
+  if (loading) return null;
+  if (athletes.length === 0) return null;
+
+  const currentAthlete = athletes[currentIndex];
 
   const getFullLocation = (id: string) => {
     const locs: any = {
       'airport_runway': t.locAirport,
       'metro_mall': t.locMetroMall,
       'agmashenebeli': t.locAgmashenebeli,
-      'rustaveli': t.locRustaveli,
+      'pirosmani_5': t.locPirosmani5,
+      'kaczynski_5': t.locKaczynski5,
+      'batumi_boulevard': t.locBatumiBoulevard,
       'heroes_park': t.locHeroesPark,
     };
     return locs[id] || id;
   };
 
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return '';
+    const date = timestamp instanceof Timestamp ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString(lang === 'RU' ? 'ru-RU' : lang === 'GE' ? 'ka-GE' : 'en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
   return (
-    <section className="py-24 bg-brand-stone relative overflow-hidden font-sans border-b border-brand-navy/5">
+    <section className="py-16 sm:py-24 bg-brand-stone relative overflow-hidden font-sans border-b border-brand-navy/5">
       <div className="container mx-auto px-6 relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 sm:mb-16">
           <Badge color="teal">{t.landingNewProfile}</Badge>
         </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto"
-        >
-          <div className="glass p-10 md:p-12 rounded-[64px] border-white shadow-3xl flex flex-col md:flex-row items-center gap-10 md:gap-16 hover:bg-white transition-all cursor-pointer group" onClick={() => navigate('/portal')}>
-             <div className="relative">
-                <div className="w-40 h-40 rounded-[48px] bg-brand-teal p-1 rotate-3 group-hover:rotate-0 transition-transform shadow-teal relative z-10 overflow-hidden">
-                  <img src={athlete.profileImage || MOCK_STUDENT.avatar} alt={athlete.name} className="w-full h-full object-cover rounded-[44px]" referrerPolicy="no-referrer" />
-                </div>
-                <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-brand-sunset rounded-full flex items-center justify-center text-white border-4 border-white shadow-xl z-20 group-hover:scale-110 transition-transform">
-                   <Zap className="w-8 h-8 fill-current" />
-                </div>
-             </div>
+        <div className="relative max-w-2xl mx-auto h-[380px] xs:h-[350px] sm:h-[340px] md:h-[320px] lg:h-[300px]">
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={currentAthlete.id}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className="absolute inset-0"
+            >
+              <div 
+                className="glass p-5 sm:p-10 md:p-12 rounded-[24px] sm:rounded-[64px] border-white shadow-3xl flex flex-col md:flex-row items-center gap-4 sm:gap-10 md:gap-16 hover:bg-white transition-all group" 
+              >
+                 <div className="relative shrink-0">
+                    <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-[24px] sm:rounded-[48px] bg-gradient-to-br from-brand-teal via-brand-teal/80 to-brand-navy p-1 rotate-3 group-hover:rotate-0 transition-transform shadow-teal relative z-10 overflow-hidden flex items-center justify-center">
+                      <div className="w-full h-full bg-brand-navy/95 rounded-[20px] sm:rounded-[44px] flex flex-col items-center justify-center gap-1 sm:gap-2 relative overflow-hidden p-2 sm:p-4 border border-white/5 group/avatar">
+                        {/* Neon accent glowing blobs */}
+                        <div className="absolute top-0 left-0 w-24 h-24 bg-brand-teal/20 rounded-full blur-xl group-hover/avatar:bg-brand-sunset/20 transition-colors duration-500" />
+                        <div className="absolute bottom-0 right-0 w-24 h-24 bg-brand-sunset/10 rounded-full blur-xl group-hover/avatar:bg-brand-teal/20 transition-colors duration-500" />
+                        
+                        {/* Central Icon container representing a human silhouette/monograph */}
+                        <div className="relative z-10 w-10 h-10 sm:w-18 sm:h-18 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform duration-300">
+                          <User className="w-5 h-5 sm:w-10 sm:h-10 text-brand-teal group-hover:text-brand-sunset transition-colors duration-300" />
+                          {currentAthlete.studentName && (
+                            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-brand-sunset border-2 border-brand-navy flex items-center justify-center text-[7px] sm:text-[10px] font-black text-white shadow-md">
+                              {currentAthlete.studentName.trim().charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Descriptive Badge Label */}
+                        <span className="relative z-10 text-[7px] sm:text-[9px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] text-white/50 group-hover:text-white/80 transition-colors">
+                          {lang === 'RU' ? 'ПАСПОРТ JUNO' : lang === 'GE' ? 'JUNO პასპორტი' : lang === 'TR' ? 'JUNO PASAPORTU' : 'JUNO PASSPORT'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 sm:-bottom-4 sm:-right-4 w-8 h-8 sm:w-16 sm:h-16 bg-brand-sunset rounded-full flex items-center justify-center text-white border-2 sm:border-4 border-white shadow-xl z-20 group-hover:scale-110 transition-transform">
+                       <Zap className="w-4 h-4 sm:w-8 sm:h-8 fill-current" />
+                    </div>
+                 </div>
 
-             <div className="flex-1 text-center md:text-left">
-                <div className="mb-6">
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-teal mb-3 block">{lang === 'RU' ? 'НЕДАВНЯЯ РЕГИСТРАЦИЯ' : 'RECENT REGISTRATION'}</span>
-                  <h3 className="text-4xl md:text-5xl font-black italic uppercase text-brand-navy tracking-tighter leading-none mb-4">{athlete.name}</h3>
-                  <div className="flex items-center justify-center md:justify-start gap-3 text-brand-navy/30">
-                    <MapPin className="w-5 h-5 text-brand-teal" />
-                    <span className="text-sm font-black uppercase tracking-widest italic">{getFullLocation(athlete.location)}</span>
-                  </div>
-                </div>
-                
-                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                  <Badge color="teal" className="px-4 py-2 rounded-xl text-[9px] uppercase italic">NOVICE II</Badge>
-                  <Badge color="blue" className="px-4 py-2 rounded-xl text-[9px] uppercase italic bg-brand-navy/5 text-brand-navy/40 border-none">LVL 1</Badge>
-                </div>
-             </div>
-
-             <div className="w-14 h-14 rounded-full bg-brand-navy flex items-center justify-center text-white shrink-0 group-hover:bg-brand-teal group-hover:shadow-teal transition-all hidden md:flex">
-                <ArrowRight className="w-6 h-6" />
-             </div>
+                 <div className="flex-1 text-center md:text-left min-w-0 w-full">
+                    <div className="mb-3 sm:mb-6">
+                      <div className="flex items-center justify-center md:justify-start gap-1.5 sm:gap-2 mb-1.5 sm:mb-3">
+                        <Calendar className="w-3 h-3 text-brand-teal shrink-0" />
+                        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-brand-navy/40">
+                          {translations[lang as keyof typeof translations]?.regDateLabel || 'REGISTRATION DATE'}: {formatDate(currentAthlete.createdAt)}
+                        </span>
+                      </div>
+                      <h3 className="text-xl sm:text-4xl md:text-5xl font-black italic uppercase text-brand-navy tracking-tighter leading-none mb-2 sm:mb-4 truncate">
+                        {currentAthlete.studentName}
+                      </h3>
+                      <div className="space-y-1 sm:space-y-2">
+                        <div className="flex items-center justify-center md:justify-start gap-2 sm:gap-3 text-brand-navy/30">
+                          <MapPin className="w-3.5 h-3.5 text-brand-teal shrink-0" />
+                          <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest italic truncate">{getFullLocation(currentAthlete.studentLocation)}</span>
+                        </div>
+                        <div className="flex items-center justify-center md:justify-start gap-2 sm:gap-3 text-brand-navy/30">
+                          <Activity className="w-3.5 h-3.5 text-brand-teal shrink-0" />
+                          <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest italic">
+                            {currentAthlete.studentAge} {lang === 'RU' ? 'ЛЕТ' : 'YEARS'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-1.5 sm:gap-3 justify-center md:justify-start">
+                      <Badge color="teal" className="px-2.5 py-1 sm:px-4 sm:py-2 rounded-[6px] sm:rounded-xl text-[7px] sm:text-[9px] uppercase italic">NOVICE II</Badge>
+                      <Badge color="blue" className="px-2.5 py-1 sm:px-4 sm:py-2 rounded-[6px] sm:rounded-xl text-[7px] sm:text-[9px] uppercase italic bg-brand-navy/5 text-brand-navy/40 border-none">LVL 1</Badge>
+                    </div>
+                 </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        
+        {/* Carousel Indicators */}
+        {athletes.length > 1 && (
+          <div className="flex justify-center gap-2 mt-12 sm:mt-8">
+            {athletes.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  currentIndex === idx ? 'bg-brand-teal w-8' : 'bg-brand-navy/10'
+                }`}
+              />
+            ))}
           </div>
-        </motion.div>
+        )}
       </div>
     </section>
   );
 }
 
-export function Footer({ lang = 'EN' }: { lang?: string }) {
+
+export function Footer({ lang = 'EN', onPortalClick }: { lang?: string, onPortalClick?: () => void }) {
   const t = translations[lang as keyof typeof translations] || translations.EN;
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   return (
     <footer className="py-20 bg-brand-navy border-t border-white/5">
@@ -1106,15 +1379,28 @@ export function Footer({ lang = 'EN' }: { lang?: string }) {
             <li><a href="#programs" className="hover:text-white transition-colors">{(t as any).social_athletes}</a></li>
             <li><a href="#locations" className="hover:text-white transition-colors">{(t as any).social_centers}</a></li>
             <li><a href="#methodology" className="hover:text-white transition-colors">{(t as any).social_education}</a></li>
+            <li>
+              <Link to="/badges" className="text-brand-teal/80 hover:text-white transition-all font-bold flex items-center gap-1">
+                🎖️ {lang === 'RU' ? 'Спортивные Значки' : lang === 'GE' ? 'სპორტული ნიშნები' : lang === 'TR' ? 'Spor Rozetleri' : 'Sport Badges'}
+              </Link>
+            </li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-bold mb-6 text-sm uppercase tracking-widest text-brand-teal">{t.footerLegal}</h4>
           <ul className="space-y-4 text-sm text-white/50">
-            <li><a href="#" className="hover:text-white transition-colors">{t.footerPrivacy}</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">{t.footerTerms}</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">{t.footerSupport}</a></li>
+            <li><button className="hover:text-white transition-colors cursor-pointer">{t.footerPrivacy}</button></li>
+            <li><button onClick={() => setIsTermsOpen(true)} className="hover:text-white transition-colors cursor-pointer">{t.footerTerms}</button></li>
+            <li><button className="hover:text-white transition-colors cursor-pointer">{t.footerSupport}</button></li>
+            <li className="pt-2 border-t border-white/5">
+              <button 
+                onClick={onPortalClick}
+                className="text-brand-teal/60 hover:text-brand-teal transition-colors cursor-pointer font-black italic uppercase text-[10px] tracking-widest"
+              >
+                {translations[lang as keyof typeof translations]?.masterPortal || 'Master Portal'}
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -1129,12 +1415,17 @@ export function Footer({ lang = 'EN' }: { lang?: string }) {
       </div>
       <div className="container mx-auto px-6 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-white/20 uppercase font-bold tracking-widest">
         <span>{t.footerCopyright}</span>
-        <div className="flex gap-6">
-          <a href="#">Instagram</a>
-          <a href="#">TikTok</a>
-          <a href="#">Facebook</a>
+        <div className="flex gap-6 items-center">
+          <a href="https://www.instagram.com/sportparksportpark/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-teal transition-all">Instagram</a>
+          <a href="https://www.facebook.com/profile.php?id=61586270925239" target="_blank" rel="noopener noreferrer" className="hover:text-brand-teal transition-all">Facebook</a>
+          <a href="https://t.me/batumi_football_sportpark" target="_blank" rel="noopener noreferrer" className="hover:text-brand-teal transition-all">Telegram</a>
         </div>
       </div>
+      <TermsModal 
+        isOpen={isTermsOpen} 
+        onClose={() => setIsTermsOpen(false)} 
+        lang={lang} 
+      />
     </footer>
   );
 }
