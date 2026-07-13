@@ -30,8 +30,6 @@ public class MatchService {
 
         matchRepository.save(match);
 
-        telegramPushService.sendEventAnnouncement(match);
-
         return "SUCCESS: Матч успешно создан и опубликован в каналах Sport Park Batumi!";
     }
 
