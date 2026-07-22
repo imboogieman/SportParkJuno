@@ -42,6 +42,7 @@ public class TelegramPushService {
 
         } catch (Exception e) {
             System.err.println("Ошибка пуша карточки в группу: " + e.getMessage());
+            throw new RuntimeException("Не удалось отправить анонс в Telegram", e);
         }
     }
 }
