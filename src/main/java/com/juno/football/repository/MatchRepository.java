@@ -22,4 +22,14 @@ public class MatchRepository {
     public void deleteById(Long id) {
         storage.remove(id);
     }
+
+    public java.util.List<MatchEvent> findByIsPublishedFalse() {
+        java.util.List<MatchEvent> unpublished = new java.util.ArrayList<>();
+        for (MatchEvent match : storage.values()) {
+            if (!match.isPublished()) {
+                unpublished.add(match);
+            }
+        }
+        return unpublished;
+    }
 }

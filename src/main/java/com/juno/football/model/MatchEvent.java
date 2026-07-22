@@ -11,6 +11,7 @@ public class MatchEvent {
     private LocalDateTime dateTime;
     private int maxCapacity;
     private double priceGel;
+    private boolean isPublished = false;
 
     private List<Player> activeRoster = new ArrayList<>();
     private List<Player> waitlist = new ArrayList<>();
@@ -42,4 +43,6 @@ public class MatchEvent {
     public void setActiveRoster(List<Player> activeRoster) { this.activeRoster = activeRoster; }
     public List<Player> getWaitlist() { return waitlist; }
     public void setWaitlist(List<Player> waitlist) { this.waitlist = waitlist; }
+    public boolean isPublished() { return isPublished; }
+    public void setPublished(boolean published) { isPublished = published; }
 }
